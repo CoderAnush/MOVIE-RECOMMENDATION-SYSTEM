@@ -17,10 +17,6 @@ Version Control: GitHub
 
 This project uses the **MovieLens 1M dataset** (ratings.dat ~250 MB), which is **not included** here due to GitHub’s 100 MB file size limit.
 
-## 📁 Dataset
-
-This project uses the **MovieLens 1M dataset** (ratings.dat ~250 MB), which is **not included** here due to GitHub’s 100 MB file size limit.
-
 ### How to download:
 1. Visit the Kaggle dataset page: [MovieLens-1M Dataset on Kaggle](https://www.kaggle.com/datasets/odedgolden/movielens-1m-dataset)  
 2. Download `ratings.dat` (and any other `.dat` files you need, like `users.dat`, `movies.dat`)  
