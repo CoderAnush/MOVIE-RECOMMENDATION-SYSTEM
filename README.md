@@ -13,6 +13,28 @@ Dataset Management: CSV (MovieLens 10M Dataset)
 Development Environment: Jupyter Notebook, VS Code, Google Colab (optional)
 Version Control: GitHub
 
+## 📁 Dataset
+
+This project uses the **MovieLens 1M dataset** (ratings.dat ~250 MB), which is **not included** here due to GitHub’s 100 MB file size limit.
+
+## 📁 Dataset
+
+This project uses the **MovieLens 1M dataset** (ratings.dat ~250 MB), which is **not included** here due to GitHub’s 100 MB file size limit.
+
+### How to download:
+1. Visit the Kaggle dataset page: [MovieLens-1M Dataset on Kaggle](https://www.kaggle.com/datasets/odedgolden/movielens-1m-dataset)  
+2. Download `ratings.dat` (and any other `.dat` files you need, like `users.dat`, `movies.dat`)  
+3. Inside the project folder, create a `data/` directory (if it's not there already)  
+4. Move `ratings.dat` into that folder so it looks like this:
+
+```
+data/
+    ratings.dat
+    users.dat
+    movies.dat
+```
+
+
 ## Detailed Summary of the Project
 This project implements a Movie Recommendation System using Soft Computing techniques to handle the uncertainty and vagueness inherent in human preferences. Unlike traditional recommendation engines that rely solely on collaborative filtering or content-based filtering, this system uses:
 
