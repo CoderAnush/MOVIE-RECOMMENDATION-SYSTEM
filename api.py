@@ -602,6 +602,127 @@ async def serve_catalog():
         return FileResponse(catalog_path, media_type="application/json")
     raise HTTPException(status_code=404, detail="Catalog file not found")
 
+@app.get("/genres")
+async def get_genres():
+    """Get all available movie genres."""
+    try:
+        # Extract unique genres from the database
+        all_genres = set()
+        for movie in REAL_MOVIES_DATABASE:
+            genres = movie.get('genres', [])
+            if isinstance(genres, list):
+                all_genres.update(genres)
+            elif isinstance(genres, str):
+                all_genres.add(genres)
+        
+        # Return sorted list of genres
+        return {
+            "genres": sorted(list(all_genres)),
+            "total": len(all_genres)
+        }
+    except Exception as e:
+        logger.error(f"Error fetching genres: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch genres")
+
+@app.get("/movies/browse")
+async def browse_movies(
+    page: int = 1,
+    per_page: int = 50,
+    sort_by: str = "popularity",
+    genre: Optional[str] = None,
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None,
+    rating_min: Optional[float] = None,
+    rating_max: Optional[float] = None,
+    search: Optional[str] = None
+):
+    """
+    Browse and filter movies from the database.
+    
+    Parameters:
+    - page: Page number (default: 1)
+    - per_page: Items per page (default: 50, max: 100)
+    - sort_by: Sort by field (popularity, rating, year, title)
+    - genre: Filter by genre
+    - year_min: Minimum year
+    - year_max: Maximum year
+    - rating_min: Minimum rating
+    - rating_max: Maximum rating
+    - search: Search in title
+    """
+    try:
+        # Validate parameters
+        per_page = min(per_page, 100)  # Max 100 items per page
+        page = max(1, page)
+        
+        # Filter movies
+        filtered_movies = REAL_MOVIES_DATABASE.copy()
+        
+        # Apply filters
+        if genre:
+            filtered_movies = [
+                m for m in filtered_movies 
+                if genre.lower() in [g.lower() for g in m.get('genres', [])]
+            ]
+        
+        if year_min:
+            filtered_movies = [m for m in filtered_movies if m.get('year', 0) >= year_min]
+        
+        if year_max:
+            filtered_movies = [m for m in filtered_movies if m.get('year', 0) <= year_max]
+        
+        if rating_min:
+            filtered_movies = [m for m in filtered_movies if m.get('rating', 0) >= rating_min]
+        
+        if rating_max:
+            filtered_movies = [m for m in filtered_movies if m.get('rating', 0) <= rating_max]
+        
+        if search:
+            search_lower = search.lower()
+            filtered_movies = [
+                m for m in filtered_movies 
+                if search_lower in m.get('title', '').lower()
+            ]
+        
+        # Sort movies
+        if sort_by == "popularity":
+            filtered_movies.sort(key=lambda x: x.get('popularity', 0), reverse=True)
+        elif sort_by == "rating":
+            filtered_movies.sort(key=lambda x: x.get('rating', 0), reverse=True)
+        elif sort_by == "year":
+            filtered_movies.sort(key=lambda x: x.get('year', 0), reverse=True)
+        elif sort_by == "title":
+            filtered_movies.sort(key=lambda x: x.get('title', '').lower())
+        
+        # Pagination
+        total_movies = len(filtered_movies)
+        total_pages = (total_movies + per_page - 1) // per_page
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        page_movies = filtered_movies[start_idx:end_idx]
+        
+        return {
+            "movies": page_movies,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total_movies": total_movies,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1
+            },
+            "filters_applied": {
+                "genre": genre,
+                "year_range": f"{year_min or 'any'}-{year_max or 'any'}",
+                "rating_range": f"{rating_min or 'any'}-{rating_max or 'any'}",
+                "search": search,
+                "sort_by": sort_by
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error browsing movies: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to browse movies: {str(e)}")
+
 if __name__ == "__main__":
     # Run the API server on port 3000
     uvicorn.run(
