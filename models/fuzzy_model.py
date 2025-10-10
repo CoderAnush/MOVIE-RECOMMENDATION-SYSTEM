@@ -19,6 +19,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class FuzzyMovieRecommender:
     """Complete fuzzy recommendation system implementing all specified rules."""
     
