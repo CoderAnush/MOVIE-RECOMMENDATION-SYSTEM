@@ -1,11 +1,14 @@
+/.trash/
 # Ignore dataset files (too large for git)
 data/ml-10M100K/
 data/ml-1m/
 data/ml-latest-small.zip
+data/full/
 processed/preprocessed_movielens10M.csv
 processed/ratings.parquet
 processed/movies_enriched.parquet
 processed/user_stats.parquet
+processed_full/
 
 # Python cache
 __pycache__/
@@ -47,6 +50,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Environment variables
+.env
 
 # Keep the dataset summary but not the large files
 !processed/dataset_summary.json

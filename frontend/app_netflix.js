@@ -5,7 +5,7 @@
 
 class NetflixMovieRecommender {
     constructor() {
-        this.apiUrl = 'http://localhost:5000/api';
+        this.apiUrl = 'http://127.0.0.1:3000';
         this.currentRecommendations = [];
         this.isLoading = false;
         
@@ -148,6 +148,90 @@ class NetflixMovieRecommender {
         }
     }
 
+    async loadMetrics() {
+        try {
+            // Load system metrics
+            const metricsResponse = await fetch(`${this.apiUrl}/metrics`);
+            const metrics = await metricsResponse.json();
+            
+            // Load system status
+            const statusResponse = await fetch(`${this.apiUrl}/system/status`);
+            const status = await statusResponse.json();
+            
+            this.displayMetrics(metrics, status);
+            this.updateSystemStatus(status);
+            
+        } catch (error) {
+            console.error('Failed to load metrics:', error);
+            this.showError('Unable to load system metrics');
+        }
+    }
+
+    displayMetrics(metrics, status) {
+        // Dataset metrics
+        const datasetStats = metrics.dataset_stats;
+        document.getElementById('metric-dataset-size').textContent = 
+            `${datasetStats.movies.toLocaleString()} Movies • ${(datasetStats.ratings/1000000).toFixed(1)}M Ratings • ${datasetStats.users.toLocaleString()} Users`;
+        
+        const topGenres = datasetStats.top_genres.slice(0, 5).join(', ');
+        document.getElementById('metric-top-genres').textContent = `Top genres: ${topGenres}`;
+        
+        // ANN metrics
+        const annMetrics = metrics.training_metrics.ann;
+        document.getElementById('metric-ann-mae').textContent = `MAE: ${annMetrics.mae}`;
+        document.getElementById('metric-ann-details').innerHTML = `
+            RMSE: ${annMetrics.rmse} • R²: ${annMetrics.r2}<br>
+            Epochs: ${annMetrics.epochs_trained} • ${annMetrics.architecture}
+        `;
+        
+        // Fuzzy metrics
+        const fuzzyMetrics = metrics.training_metrics.fuzzy;
+        document.getElementById('metric-fuzzy-rules').textContent = `${fuzzyMetrics.rules} Rules`;
+        document.getElementById('metric-fuzzy-details').innerHTML = `
+            Preference Rules: ${fuzzyMetrics.rule_groups.preference_vs_genre}<br>
+            Popularity Rules: ${fuzzyMetrics.rule_groups.popularity_genre_match}<br>
+            History Rules: ${fuzzyMetrics.rule_groups.watch_history}
+        `;
+        
+        // Performance metrics
+        if (status.components && status.components.hybrid_system) {
+            const perfTime = status.components.hybrid_system.last_prediction_time || '--';
+            document.getElementById('metric-response-time').textContent = `${perfTime} ms`;
+        }
+        
+        // Model architecture
+        document.getElementById('metric-model-params').textContent = '3,905';
+        document.getElementById('metric-architecture-details').innerHTML = `
+            Dense Layers: 64→32→16→1<br>
+            Dropout: 0.2, 0.15, 0.1<br>
+            Input Features: 19 • Output: 1
+        `;
+        
+        // Show metrics section
+        document.getElementById('metrics').style.display = 'block';
+    }
+
+    updateSystemStatus(status) {
+        // Update status indicators
+        const apiStatus = document.getElementById('api-status');
+        const fuzzyStatus = document.getElementById('fuzzy-status');
+        const annStatus = document.getElementById('ann-status');
+        
+        // API Status
+        apiStatus.textContent = status.status === 'healthy' ? '🟢' : '🔴';
+        apiStatus.className = status.status === 'healthy' ? 'status-indicator online' : 'status-indicator';
+        
+        // Fuzzy Engine Status
+        const fuzzyHealthy = status.components?.fuzzy_engine?.status === 'operational';
+        fuzzyStatus.textContent = fuzzyHealthy ? '🟢' : '🔴';
+        fuzzyStatus.className = fuzzyHealthy ? 'status-indicator online' : 'status-indicator';
+        
+        // ANN Model Status
+        const annHealthy = status.components?.ann_model?.status === 'loaded';
+        annStatus.textContent = annHealthy ? '🟢' : '🔴';
+        annStatus.className = annHealthy ? 'status-indicator online' : 'status-indicator';
+    }
+
     applyPreset(presetType) {
         // Remove active class from all preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -198,14 +282,14 @@ class NetflixMovieRecommender {
         this.hideError();
 
         try {
-            const formData = this.collectFormData();
+            const requestData = this.prepareEnhancedRecommendationRequest();
             
-            const response = await fetch(`${this.apiUrl}/user/preferences`, {
+            const response = await fetch(`${this.apiUrl}/recommend/enhanced`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(requestData)
             });
 
             if (!response.ok) {
@@ -214,8 +298,8 @@ class NetflixMovieRecommender {
 
             const data = await response.json();
             
-            if (data.error) {
-                throw new Error(data.error);
+            if (data.detail) {
+                throw new Error(data.detail);
             }
 
             this.currentRecommendations = data.recommendations || [];
@@ -236,6 +320,151 @@ class NetflixMovieRecommender {
             this.isLoading = false;
             this.showLoading(false);
         }
+    }
+
+    prepareRecommendationRequest() {
+        // Collect user preferences
+        const userPreferences = {};
+        const sliders = document.querySelectorAll('.slider');
+        
+        // Map frontend field names to API field names
+        const fieldMapping = {
+            'scifi': 'sci_fi',
+            'fantasy': 'sci_fi'  // Map fantasy to sci_fi since API doesn't have fantasy
+        };
+        
+        sliders.forEach(slider => {
+            const fieldName = fieldMapping[slider.id] || slider.id.replace('-', '_');
+            // Only include fields that are expected by the API
+            if (['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'].includes(fieldName)) {
+                userPreferences[fieldName] = parseFloat(slider.value);
+            }
+        });
+        
+        // Ensure all required fields are present with default values
+        const requiredFields = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'];
+        requiredFields.forEach(field => {
+            if (userPreferences[field] === undefined) {
+                userPreferences[field] = 5.0;  // Default value
+            }
+        });
+        
+        // Get number of recommendations requested
+        const numRecommendations = parseInt(document.getElementById('num-recommendations').value) || 10;
+        
+        // Sample movies for demonstration - in a real app, this would come from a catalog
+        const sampleMovies = [
+            {
+                title: "The Matrix",
+                genres: ["Action", "Sci-Fi"],
+                popularity: 95,
+                year: 1999
+            },
+            {
+                title: "The Shawshank Redemption", 
+                genres: ["Drama"],
+                popularity: 98,
+                year: 1994
+            },
+            {
+                title: "Inception",
+                genres: ["Action", "Sci-Fi", "Thriller"],
+                popularity: 92,
+                year: 2010
+            },
+            {
+                title: "Pulp Fiction",
+                genres: ["Crime", "Drama"],
+                popularity: 89,
+                year: 1994
+            },
+            {
+                title: "The Dark Knight",
+                genres: ["Action", "Crime", "Drama"],
+                popularity: 96,
+                year: 2008
+            },
+            {
+                title: "Forrest Gump",
+                genres: ["Drama", "Romance"],
+                popularity: 87,
+                year: 1994
+            },
+            {
+                title: "The Lord of the Rings: The Return of the King",
+                genres: ["Adventure", "Drama", "Fantasy"],
+                popularity: 94,
+                year: 2003
+            },
+            {
+                title: "The Godfather",
+                genres: ["Crime", "Drama"],
+                popularity: 97,
+                year: 1972
+            },
+            {
+                title: "Goodfellas",
+                genres: ["Crime", "Drama"],
+                popularity: 86,
+                year: 1990
+            },
+            {
+                title: "Interstellar",
+                genres: ["Adventure", "Drama", "Sci-Fi"],
+                popularity: 88,
+                year: 2014
+            }
+        ].slice(0, numRecommendations);
+        
+        // Sample watch history
+        const watchHistory = {
+            liked_ratio: 0.75,
+            disliked_ratio: 0.15,
+            watch_count: Math.floor(Math.random() * 50) + 10
+        };
+        
+        return {
+            user_preferences: userPreferences,
+            movies: sampleMovies,
+            watch_history: watchHistory,
+            strategy: "adaptive"
+        };
+    }
+
+    prepareEnhancedRecommendationRequest() {
+        // Collect user preferences
+        const userPreferences = {};
+        const sliders = document.querySelectorAll('.slider');
+        
+        // Map frontend field names to API field names
+        const fieldMapping = {
+            'scifi': 'sci_fi',
+            'fantasy': 'sci_fi'  // Map fantasy to sci_fi since API doesn't have fantasy
+        };
+        
+        sliders.forEach(slider => {
+            const fieldName = fieldMapping[slider.id] || slider.id.replace('-', '_');
+            // Only include fields that are expected by the API
+            if (['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'].includes(fieldName)) {
+                userPreferences[fieldName] = parseFloat(slider.value);
+            }
+        });
+        
+        // Ensure all required fields are present with default values
+        const requiredFields = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'];
+        requiredFields.forEach(field => {
+            if (userPreferences[field] === undefined) {
+                userPreferences[field] = 5.0;  // Default value
+            }
+        });
+        
+        // Get number of recommendations requested
+        const numRecommendations = parseInt(document.getElementById('num-recommendations').value) || 10;
+        
+        return {
+            user_preferences: userPreferences,
+            num_recommendations: numRecommendations
+        };
     }
 
     collectFormData() {
@@ -302,38 +531,87 @@ class NetflixMovieRecommender {
         const card = document.createElement('div');
         card.className = 'movie-card';
         
-        const genres = Array.isArray(movie.genres) ? movie.genres.join(', ') : movie.genres || 'Unknown';
-        const year = movie.year ? `(${movie.year})` : '';
-        const rating = movie.avg_rating ? parseFloat(movie.avg_rating).toFixed(1) : 'N/A';
-        const ratingCount = movie.rating_count ? `${movie.rating_count} ratings` : '';
+        // Extract movie data (Enhanced format with real movies)
+        const title = movie.title || movie.movie_title || 'Unknown Movie';
+        const year = movie.year || '';
+        const genres = Array.isArray(movie.genres) ? movie.genres.join(', ') : (movie.genres || 'Unknown');
+        const posterUrl = movie.poster_url || movie.poster || 'https://via.placeholder.com/300x450?text=No+Poster';
+        const description = movie.description || '';
+        const director = movie.director || 'Unknown';
+        const cast = Array.isArray(movie.cast) ? movie.cast.slice(0, 3).join(', ') : (movie.cast || 'Unknown');
+        const runtime = movie.runtime ? `${movie.runtime} min` : 'Unknown';
         
-        // Generate star rating
-        const stars = this.generateStarRating(movie.avg_rating || 0);
+        // Scores (support both old and new format)
+        const predictedRating = movie.predicted_rating || movie.hybrid_score || 0;
+        const confidence = movie.confidence || (movie.agreement || 0);
+        const imdbRating = movie.rating || movie.avg_rating || 0;
+        
+        // Generate star rating based on predicted score
+        const stars = this.generateStarRating(predictedRating);
         
         // Score colors
-        const scoreColor = this.getScoreColor(movie.score || 0);
+        const scoreColor = this.getScoreColor(predictedRating);
+        const confidenceColor = confidence > 0.8 ? '#46d369' : confidence > 0.6 ? '#f5c842' : '#E50914';
         
         card.innerHTML = `
-            <div class="movie-poster">
-                🎬
-                <div class="score-badge" style="position: absolute; top: 1rem; right: 1rem; background: ${scoreColor};">
-                    ${(movie.score || 0).toFixed(1)}
+            <div class="movie-poster-container">
+                <div class="movie-rank">#${index + 1}</div>
+                <img class="movie-poster-img" src="${posterUrl}" alt="${title}" loading="lazy"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/141414/E50914?text=${encodeURIComponent(title.substring(0, 20))}';"
+                     onload="this.style.opacity='1'; this.parentElement.querySelector('.poster-loading')?.remove();"
+                     style="opacity: 0; transition: opacity 0.3s ease;">
+                <div class="poster-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #E50914; font-size: 1.2rem;">
+                    🎬 Loading...
+                </div>
+                <div class="poster-overlay">
+                    <div class="predicted-score" style="background: ${scoreColor};">
+                        <span class="score-number">${predictedRating.toFixed(1)}</span>
+                        <span class="score-label">Predicted</span>
+                    </div>
+                    <div class="confidence-badge" style="background: ${confidenceColor};">
+                        <span class="confidence-icon">${confidence > 0.8 ? '🎯' : confidence > 0.6 ? '👍' : '🤔'}</span>
+                        <span class="confidence-text">${(confidence * 100).toFixed(0)}% Match</span>
+                    </div>
                 </div>
             </div>
             <div class="movie-info">
-                <h3 class="movie-title">${movie.title} ${year}</h3>
+                <h3 class="movie-title">${title}</h3>
+                <div class="movie-year-runtime">${year} • ${runtime}</div>
                 <div class="movie-genres">${genres}</div>
-                <div class="movie-stats">
-                    <div class="rating-stars">${stars}</div>
-                    <div style="font-size: 0.8rem; color: var(--netflix-text-gray);">${rating} ⭐ ${ratingCount}</div>
+                
+                <div class="movie-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Director:</span>
+                        <span class="detail-value">${director}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Cast:</span>
+                        <span class="detail-value">${cast}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">IMDb:</span>
+                        <span class="detail-value">${imdbRating}/10</span>
+                    </div>
                 </div>
-                <div class="movie-explanation">
-                    ${movie.explanation || 'Recommended based on your preferences'}
-                </div>
-                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--netflix-text-gray);">
-                    <div>🧠 Fuzzy: ${(movie.fuzzy_score || 0).toFixed(2)}</div>
-                    <div>🤖 Neural: ${(movie.ann_score || 0).toFixed(2)}</div>
-                </div>
+                
+                <div class="rating-stars">${stars}</div>
+                
+                ${description ? `
+                    <div class="movie-description">
+                        <p>${description.length > 120 ? description.substring(0, 120) + '...' : description}</p>
+                    </div>
+                ` : ''}
+                
+                ${movie.explanation ? `
+                    <div class="recommendation-reason">
+                        <div class="reason-header">
+                            <strong>🎯 Why We Recommend This</strong>
+                        </div>
+                        <div class="reason-content">
+                            <p>${movie.explanation}</p>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
 
@@ -811,6 +1089,47 @@ function loadCatalog(page) {
 function clearCatalogFilters() {
     window.recommender.clearCatalogFilters();
 }
+
+// Navigation functions
+function showMetrics() {
+    // Hide other sections
+    document.getElementById('recommendations').style.display = 'none';
+    document.getElementById('catalog-section').style.display = 'none';
+    
+    // Show metrics and load data
+    window.recommender.loadMetrics();
+}
+
+function showAbout() {
+    // Scroll to about section
+    document.getElementById('about').scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+function scrollToPreferences() {
+    document.getElementById('preferences').scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+// Update navigation event handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for navigation
+    const navLinks = document.querySelectorAll('.nav-links a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href === '#metrics') {
+                e.preventDefault();
+                showMetrics();
+            } else if (href === '#about') {
+                e.preventDefault();
+                showAbout();
+            }
+        });
+    });
+});
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {

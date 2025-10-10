@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing Movie Recommendation API</h1>
+    <button onclick="testAPI()">Test Recommendation API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const testData = {
+                user_preferences: {
+                    action: 8.0,
+                    comedy: 3.0,
+                    romance: 2.0,
+                    thriller: 7.0,
+                    sci_fi: 6.0,
+                    drama: 4.0,
+                    horror: 2.0
+                },
+                movies: [
+                    {
+                        title: "The Matrix",
+                        genres: ["Action", "Sci-Fi"],
+                        popularity: 95,
+                        year: 1999
+                    }
+                ],
+                strategy: "adaptive"
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/recommend/batch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const result = await response.json();
+                document.getElementById('result').innerHTML = 
+                    '<h3>Success!</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<h3>Error:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -16,6 +16,7 @@
                 <li><a href="#home">Home</a></li>
                 <li><a href="#preferences">Preferences</a></li>
                 <li><a href="#recommendations">Movies</a></li>
+                <li><a href="#metrics">Metrics</a></li>
                 <li><a href="#catalog" onclick="showCatalog()">Browse Catalog</a></li>
                 <li><a href="#about">About</a></li>
             </ul>
@@ -175,6 +176,101 @@
             <div id="movies-grid" class="movies-grid"></div>
         </section>
 
+        <!-- Metrics Section -->
+        <section id="metrics" class="fade-in-up" style="display: none;">
+            <h2 class="section-title">📈 System Metrics & Performance</h2>
+            
+            <!-- System Status -->
+            <div class="system-status" id="system-status-display">
+                <div class="status-item">
+                    <span class="status-indicator" id="api-status">🔴</span>
+                    <span>API Server</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-indicator" id="fuzzy-status">🔴</span>
+                    <span>Fuzzy Engine</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-indicator" id="ann-status">🔴</span>
+                    <span>Neural Network</span>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>📊 Dataset Coverage</h3>
+                    <p class="metric-value" id="metric-dataset-size">Loading...</p>
+                    <p class="metric-caption">Movies • Ratings • Users</p>
+                    <div class="metric-detail" id="metric-top-genres"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>🤖 Neural Network Performance</h3>
+                    <p class="metric-value" id="metric-ann-mae">MAE: --</p>
+                    <p class="metric-caption">Mean Absolute Error</p>
+                    <div class="metric-detail" id="metric-ann-details"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>🧠 Fuzzy Logic Engine</h3>
+                    <p class="metric-value" id="metric-fuzzy-rules">47 Rules</p>
+                    <p class="metric-caption">Expert Rules Active</p>
+                    <div class="metric-detail" id="metric-fuzzy-details"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>⚡ Performance Stats</h3>
+                    <p class="metric-value" id="metric-response-time">-- ms</p>
+                    <p class="metric-caption">Average Response Time</p>
+                    <div class="metric-detail" id="metric-performance-details"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>🎯 Hybrid Agreement</h3>
+                    <p class="metric-value" id="metric-agreement">--%</p>
+                    <p class="metric-caption">Fuzzy vs ANN Consensus</p>
+                    <div class="metric-detail" id="metric-agreement-details"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3>🎬 Model Architecture</h3>
+                    <p class="metric-value" id="metric-model-params">3,905</p>
+                    <p class="metric-caption">Neural Network Parameters</p>
+                    <div class="metric-detail" id="metric-architecture-details"></div>
+                </div>
+            </div>
+
+            <!-- Performance Chart Placeholder -->
+            <div class="chart-container" id="performance-chart">
+                <h3>📈 Real-time Performance Monitor</h3>
+                <div class="chart-placeholder">
+                    <p>Performance visualization will be displayed here</p>
+                    <div class="chart-stats" id="chart-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Requests:</span>
+                            <span class="stat-value" id="total-requests">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg Score:</span>
+                            <span class="stat-value" id="avg-score">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Top Strategy:</span>
+                            <span class="stat-value" id="top-strategy">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+                <div class="metric-card">
+                    <h3>Hybrid Recommendations</h3>
+                    <p class="metric-value" id="metric-hybrid-agreement">Agreement: --</p>
+                    <p class="metric-caption">Adaptive Strategies & Confidence</p>
+                    <div class="metric-detail" id="metric-hybrid-details"></div>
+                </div>
+            </div>
+        </section>
+
         <!-- Movie Catalog Section -->
         <section id="catalog" class="fade-in-up" style="display: none;">
             <h2 class="section-title">🎬 Browse Movie Catalog</h2>
@@ -227,6 +323,29 @@
             
             <!-- Pagination -->
             <div id="catalog-pagination" style="text-align: center; margin-top: 2rem;"></div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="fade-in-up" style="margin-top: 4rem;">
+            <h2 class="section-title">🤖 About CineAI</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>Hybrid Intelligence</h3>
+                    <p>We combine the strengths of fuzzy logic (expert rules) and neural networks (learned patterns from 10M MovieLens ratings) to deliver balanced, explainable movie recommendations.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Real Data, Real Models</h3>
+                    <p>Our ANN is trained on 10,000,054 real user ratings across 69,878 users and 10,681 movies. The fuzzy engine uses 47 handcrafted rules across 7 core genres to keep recommendations human-readable.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Transparent Insights</h3>
+                    <p>Every recommendation highlights fuzzy vs ANN scores, agreement levels, and strategy used so you can understand how CineAI made its choices.</p>
+                </div>
+                <div class="about-card">
+                    <h3>API Ready</h3>
+                    <p>Expose recommendations via our FastAPI service and integrate CineAI into websites, mobile apps, or data workflows with ease.</p>
+                </div>
+            </div>
         </section>
 
         <!-- Error Section -->

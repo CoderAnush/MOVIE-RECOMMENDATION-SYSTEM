@@ -1,0 +1,25 @@
+{
+  "feature_columns": [
+    "movie_rating",
+    "movie_popularity",
+    "movie_year",
+    "movie_runtime",
+    "movie_budget",
+    "movie_box_office",
+    "user_action",
+    "user_comedy",
+    "user_romance",
+    "user_thriller",
+    "user_sci_fi",
+    "user_drama",
+    "user_horror",
+    "movie_genre_action",
+    "movie_genre_comedy",
+    "movie_genre_romance",
+    "movie_genre_thriller",
+    "movie_genre_sci_fi",
+    "movie_genre_drama",
+    "movie_genre_horror"
+  ],
+  "model_metrics": {}
+}

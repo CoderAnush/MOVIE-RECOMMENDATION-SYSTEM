@@ -17,6 +17,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from models.fuzzy_model import FuzzyMovieRecommender, recommend_with_fuzzy
 from models.ann_model import ANNMoviePredictor
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class HybridRecommendationSystem:
     Complete hybrid system combining fuzzy logic and ANN predictions.
     """
     
-    def __init__(self, ann_model_name: str = "ann_movie_predictor"):
+    def __init__(self, ann_model_name: str = "models/simple_ann_model"):
         """
         Initialize the hybrid system.
         
@@ -36,13 +37,30 @@ class HybridRecommendationSystem:
         self.ann_predictor = ANNMoviePredictor()
         
         # Try to load ANN model
+        self.ann_available = False
+        self.ann_model = None
+        
         try:
-            self.ann_predictor.load_model(ann_model_name)
-            self.ann_available = True
-            logger.info("✅ ANN model loaded successfully")
-        except FileNotFoundError:
+            # Try loading simple ANN model first
+            model_path = "models/simple_ann_model.keras"
+            if os.path.exists(model_path):
+                import tensorflow as tf
+                self.ann_model = tf.keras.models.load_model(model_path)
+                self.ann_available = True
+                logger.info(f"✅ ANN model loaded successfully from {model_path}")
+            else:
+                # Try enhanced model
+                model_path = "models/enhanced_ann_model.keras"
+                if os.path.exists(model_path):
+                    import tensorflow as tf
+                    self.ann_model = tf.keras.models.load_model(model_path)
+                    self.ann_available = True
+                    logger.info(f"✅ Enhanced ANN model loaded successfully from {model_path}")
+                else:
+                    logger.warning("⚠️ ANN model not found. Using fuzzy-only predictions.")
+        except Exception as e:
             self.ann_available = False
-            logger.warning("⚠️ ANN model not found. Using fuzzy-only predictions.")
+            logger.warning(f"⚠️ ANN model loading failed: {e}. Using fuzzy-only predictions.")
         
         # Combination strategies
         self.combination_strategies = {
@@ -135,6 +153,52 @@ class HybridRecommendationSystem:
         """Calculate genre match score for context."""
         return self.fuzzy_engine.calculate_genre_match(user_preferences, movie_genres)
     
+    def _prepare_ann_features(self, user_preferences: Dict[str, float],
+                             movie_info: Dict[str, Any],
+                             watch_history: Optional[Dict[str, float]] = None) -> np.ndarray:
+        """Prepare features for ANN model prediction.
+        
+        Enhanced model expects 20 features:
+        - movie_rating, movie_popularity, movie_year, movie_runtime, movie_budget, movie_box_office (6)
+        - user_action, user_comedy, user_romance, user_thriller, user_sci_fi, user_drama, user_horror (7)
+        - movie_genre_action, movie_genre_comedy, movie_genre_romance, movie_genre_thriller, 
+          movie_genre_sci_fi, movie_genre_drama, movie_genre_horror (7)
+        Total: 20 features
+        
+        Simple model expects 19 features (same but without movie_box_office)
+        """
+        features = []
+        
+        # Movie features (6 for enhanced, 5 for simple)
+        features.append(movie_info.get('rating', 7.0))  # movie_rating
+        features.append(movie_info.get('popularity', 50.0))  # movie_popularity
+        features.append(movie_info.get('year', 2000))  # movie_year
+        features.append(movie_info.get('runtime', 120))  # movie_runtime
+        features.append(movie_info.get('budget', 0))  # movie_budget
+        
+        # Check if we're using enhanced model (20 features) or simple (19 features)
+        if hasattr(self.ann_model, 'input_shape') and self.ann_model.input_shape[1] == 20:
+            features.append(movie_info.get('box_office', 0))  # movie_box_office (enhanced only)
+        
+        # User preferences (7 features) - already normalized 0-10
+        genres = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror']
+        for genre in genres:
+            features.append(user_preferences.get(genre, 5.0))
+        
+        # Movie genres (7 features, one-hot encoding)
+        movie_genres_str = str(movie_info.get('genres', '')).lower()
+        movie_genres_list = [g.lower().replace('-', '_').replace(' ', '_') for g in movie_info.get('genres', [])] if isinstance(movie_info.get('genres', []), list) else []
+        
+        for genre in genres:
+            # Check both string representation and list
+            has_genre = (genre in movie_genres_str or 
+                        genre.replace('_', ' ') in movie_genres_str or
+                        genre.replace('_', '-') in movie_genres_str or
+                        genre in movie_genres_list)
+            features.append(1.0 if has_genre else 0.0)
+        
+        return np.array([features], dtype=np.float32)
+    
     def recommend(self, user_preferences: Dict[str, float],
                  movie_info: Dict[str, Any],
                  watch_history: Optional[Dict[str, float]] = None,
@@ -166,12 +230,20 @@ class HybridRecommendationSystem:
         }
         
         # Get ANN score if available
-        if self.ann_available:
+        if self.ann_available and self.ann_model:
             try:
-                ann_score = self.ann_predictor.predict(
-                    user_preferences, movie_info, watch_history
-                )
-                result['ann_score'] = ann_score
+                # Prepare features for ANN model
+                features = self._prepare_ann_features(user_preferences, movie_info, watch_history)
+                ann_prediction = self.ann_model.predict(features, verbose=0)
+                ann_score = float(ann_prediction[0][0])
+                
+                # Normalize to 0-10 scale if needed
+                if ann_score < 0:
+                    ann_score = 0
+                elif ann_score > 10:
+                    ann_score = 10
+                    
+                result['ann_score'] = round(ann_score, 2)
                 result['explanation'] += f", ANN score: {ann_score:.2f}"
                 
                 # Calculate hybrid score
