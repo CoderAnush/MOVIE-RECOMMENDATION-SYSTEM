@@ -546,6 +546,13 @@ class NetflixMovieRecommender {
         const confidence = movie.confidence || (movie.agreement || 0);
         const imdbRating = movie.rating || movie.avg_rating || 0;
         
+        // Optimize poster URL - use smaller size if from TMDB
+        let optimizedPosterUrl = posterUrl;
+        if (posterUrl.includes('tmdb.org')) {
+            // Change w500 to w300 for faster loading
+            optimizedPosterUrl = posterUrl.replace('/w500/', '/w300/');
+        }
+        
         // Generate star rating based on predicted score
         const stars = this.generateStarRating(predictedRating);
         
@@ -556,7 +563,7 @@ class NetflixMovieRecommender {
         card.innerHTML = `
             <div class="movie-poster-container">
                 <div class="movie-rank">#${index + 1}</div>
-                <img class="movie-poster-img" src="${posterUrl}" alt="${title}" loading="lazy"
+                <img class="movie-poster-img" src="${optimizedPosterUrl}" alt="${title}" loading="lazy" decoding="async"
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/141414/E50914?text=${encodeURIComponent(title.substring(0, 20))}';"
                      onload="this.style.opacity='1'; this.parentElement.querySelector('.poster-loading')?.remove();"
                      style="opacity: 0; transition: opacity 0.3s ease;">

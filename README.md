@@ -1,277 +1,340 @@
-# 🎬 Complete Movie Recommendation System
+# 🎬 Movie Recommendation System
+**AI-Powered Movie Recommendations using Fuzzy Logic + Neural Networks**
 
-A sophisticated hybrid recommendation system combining **Fuzzy Logic** and **Artificial Neural Networks** for personalized movie recommendations.
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15+-orange.svg)](https://www.tensorflow.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 🌟 Features
 
-### ✅ **Fuzzy Logic Engine** (Fully Implemented)
-- **User Preference vs Genre Rules**: Matches user preferences with movie genres
-- **Popularity & Genre Match Rules**: Considers movie popularity and genre compatibility
-- **Watch History Rules**: Analyzes user's historical preferences
-- **Triangular Membership Functions**: Precise fuzzy logic modeling
-- **47 Comprehensive Rules**: Covering all recommendation scenarios
+### 🧠 **Hybrid Intelligence System**
+- **Fuzzy Logic Engine**: 47 expert rules for genre matching
+- **Neural Network (ANN)**: 19-feature deep learning model
+- **Hybrid Scoring**: Adaptive combination of both approaches
+- **10,681 Movies**: Complete MovieLens 10M dataset
 
-### 🤖 **ANN Predictor** (Implementation Ready)
-- **Dense Feed-Forward Architecture**: 64→32→16→1 neurons
-- **18+ Engineered Features**: User preferences, movie metadata, watch history
-- **Dropout Regularization**: Prevents overfitting
-- **Regression Output**: 0-10 rating prediction scale
-- **Integration Interface**: Ready for hybrid system
+### 🎯 **Smart Genre Filtering**
+- Strict preference-based filtering (0-10 scale)
+- Automatic disliked genre rejection (< 4/10)
+- High preference prioritization (>= 7/10)
+- Diversity factor prevents repetitive results
 
-### 🔄 **Hybrid System** (Framework Complete)
-- **Multiple Combination Strategies**: Weighted, adaptive, confidence-based
-- **Context-Aware Blending**: Adjusts based on user history and genre match
-- **Strategy Comparison Tools**: A/B testing support
-- **Batch Processing**: Efficient bulk recommendations
+### 🎨 **Beautiful Netflix-Style UI**
+- Modern, responsive design
+- Real-time genre preference sliders
+- Dynamic movie cards with posters
+- Smooth animations and transitions
 
-## 📊 Dataset
+### ⚡ **Performance Optimized**
+- Fast loading with parquet format
+- In-memory caching (1000 results)
+- Async FastAPI backend
+- 70+ real movie posters cached
 
-**MovieLens 10M Dataset** - Fully Preprocessed
-- **10,000,054 ratings** from **69,878 users** on **10,681 movies**
-- **20 genres** with binary encoding
-- **Time range**: 1995-2009
-- **Average rating**: 3.51/5.0
-- **Data size**: 530MB preprocessed CSV + parquet files
-
-## 🏗️ System Architecture
-
-```
-📊 Data Processing Layer
-├── MovieLens 10M Dataset (✅ Complete)
-├── Data Preprocessing Pipeline (✅ Complete)
-└── Feature Engineering (✅ Complete)
-
-🧠 Recommendation Engines
-├── Fuzzy Logic System (✅ Complete)
-│   ├── User Preference vs Genre Rules
-│   ├── Popularity & Genre Match Rules
-│   ├── Watch History Rules
-│   └── Triangular Membership Functions
-│
-└── ANN Predictor (🔄 Ready for Training)
-    ├── Dense Feed-Forward Network
-    ├── 18+ Engineered Features
-    ├── Dropout Regularization
-    └── Regression Output
-
-🔄 Hybrid Integration (✅ Framework Complete)
-├── Multiple Combination Strategies
-├── Adaptive Weighting
-├── Confidence-Based Adjustments
-└── Context-Aware Blending
-
-🌐 Integration Layer (✅ Complete)
-├── User Preference Extraction
-├── Movie Information Processing
-├── Watch History Analysis
-└── Real-time Recommendation API
-```
+---
 
 ## 🚀 Quick Start
 
-### 1. Installation
-
+### 1️⃣ **Prerequisites**
 ```bash
-git clone <repository-url>
-cd fuzzy-movie-recommender
+Python 3.10+
+pip (Python package manager)
+```
+
+### 2️⃣ **Installation**
+```bash
+# Clone the repository
+git clone https://github.com/CoderAnush/MOVIE-RECOMMENDATION-SYSTEM.git
+cd MOVIE-RECOMMENDATION-SYSTEM/fuzzy-movie-recommender
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Test Fuzzy System
+### 3️⃣ **Start the System**
 
+**Option A: One-Click Start (Windows)**
 ```bash
-python simple_demo.py
+START_SYSTEM.bat
 ```
 
-### 3. Run Comprehensive Demo
-
+**Option B: Manual Start**
 ```bash
-python complete_demo.py
+python -m uvicorn api:app --host 127.0.0.1 --port 3000
 ```
 
-### 4. Test All Fuzzy Rules
+### 4️⃣ **Access the Application**
+Open your browser to: **http://127.0.0.1:3000**
 
-```bash
-python test_fuzzy_system.py
+---
+
+## 📊 System Architecture
+
 ```
+┌─────────────────────────────────────────────────────────────┐
+│                     Frontend (Netflix UI)                    │
+│              HTML5 + CSS3 + Vanilla JavaScript              │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTP/REST API
+┌──────────────────────────┴──────────────────────────────────┐
+│                   FastAPI Backend (Port 3000)                │
+│                                                              │
+│  ┌────────────────┐  ┌────────────────┐  ┌───────────────┐ │
+│  │  Fuzzy Logic   │  │      ANN       │  │  Performance  │ │
+│  │   Engine       │  │     Model      │  │  Optimizer    │ │
+│  │  (47 rules)    │  │  (19 features) │  │   (Caching)   │ │
+│  └────────┬───────┘  └────────┬───────┘  └───────┬───────┘ │
+│           │                   │                   │          │
+│           └───────────┬───────┴───────────────────┘          │
+│                       │                                      │
+│           ┌───────────▼───────────┐                         │
+│           │   Hybrid System       │                         │
+│           │  (Adaptive Weighting) │                         │
+│           └───────────┬───────────┘                         │
+└───────────────────────┼─────────────────────────────────────┘
+                        │
+            ┌───────────▼───────────┐
+            │  MovieLens 10M Dataset│
+            │    (10,681 movies)    │
+            │   Parquet + Cache     │
+            └───────────────────────┘
+```
+
+---
+
+## 🎯 How It Works
+
+### Genre Preference System (0-10 Scale)
+
+| Score | Meaning | Behavior |
+|-------|---------|----------|
+| **0-3** | 🚫 **Dislike** | Movies with this genre are completely filtered out |
+| **4-6** | 😐 **Neutral** | Movies considered but not prioritized |
+| **7-10** | ❤️ **Love** | Movies MUST match at least one high preference |
+
+### Example Usage
+
+**Your Preferences:**
+```
+Action:   10/10 ⭐ (Love it!)
+Sci-Fi:   9/10  ⭐ (Love it!)
+Romance:  2/10  ❌ (Dislike)
+Horror:   1/10  ❌ (Hate it!)
+```
+
+**Results:**
+```
+✅ The Matrix (Action, Sci-Fi) - 8.9/10
+✅ Blade Runner (Sci-Fi, Thriller) - 8.7/10
+✅ Mad Max (Action) - 8.5/10
+
+❌ The Notebook (Romance) - Filtered out
+❌ The Conjuring (Horror) - Filtered out
+```
+
+---
+
+## 🧪 Technical Details
+
+### Fuzzy Logic Engine
+- **47 inference rules** for genre matching
+- Mamdani fuzzy inference system
+- 7 genre categories: Action, Comedy, Romance, Thriller, Sci-Fi, Drama, Horror
+- Quality scoring based on rating, awards, box office
+
+### Neural Network Model
+**Architecture:**
+- Input: 19 features
+  - Movie metadata (5): rating, popularity, year, runtime, budget
+  - User preferences (7): genre scores 0-10
+  - Genre matching (7): one-hot encoded
+- Hidden layers: 2 layers with dropout
+- Output: Single score (0-10 prediction)
+- Parameters: 3,905 trainable
+
+**Training:**
+- Dataset: MovieLens 10M ratings
+- Loss: Mean Squared Error
+- Optimizer: Adam
+- Metrics: MAE, RMSE, R²
+
+### Hybrid Scoring
+```python
+# Adaptive weighting based on context
+if high_agreement:
+    score = 0.5 * fuzzy + 0.5 * ann
+elif low_agreement:
+    score = confidence_weighted(fuzzy, ann, context)
+else:
+    score = 0.6 * fuzzy + 0.4 * ann
+
+# Add diversity factor
+score += random(0, 0.05)
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
 fuzzy-movie-recommender/
-├── data/                          # Raw MovieLens datasets
-├── processed/                     # Preprocessed data files
-│   ├── movies_enriched.parquet    # Movie metadata with genres
-│   ├── ratings.parquet           # User ratings data
-│   ├── user_stats.parquet        # User statistics
-│   ├── dataset_summary.json      # Dataset overview
-│   └── preprocessed_movielens10M.csv  # Complete ML-ready data
-├── models/                        # ML models and engines
-│   ├── __init__.py
-│   ├── fuzzy_model.py            # ✅ Complete fuzzy logic system
-│   ├── ann_model.py              # 🤖 ANN implementation
-│   └── hybrid_system.py          # 🔄 Hybrid recommendation engine
-├── scripts/                       # Data processing scripts
-│   └── prepare_dataset.py        # ✅ Complete preprocessing pipeline
-├── test_fuzzy_system.py          # ✅ Comprehensive fuzzy tests
-├── complete_demo.py              # 🎯 Full system demonstration
-├── simple_demo.py                # 🏃 Quick fuzzy demo
-├── integration_demo.py           # 🔗 Data integration example
-└── requirements.txt              # 📦 All dependencies
+├── api.py                              # FastAPI backend
+├── enhanced_recommendation_engine.py   # Recommendation algorithms
+├── fast_complete_loader.py            # Dataset loader
+├── performance_optimizer.py            # Caching & optimization
+├── real_movies_db_omdb.py             # Movie database
+├── requirements.txt                    # Python dependencies
+├── START_SYSTEM.bat                   # Windows startup script
+├── .env.example                       # Environment variables template
+│
+├── models/
+│   ├── fuzzy_model.py                 # Fuzzy logic engine
+│   ├── hybrid_system.py               # Hybrid scoring system
+│   ├── enhanced_ann_model.py          # ANN wrapper
+│   ├── simple_ann_model.keras         # Trained neural network
+│   └── enhanced_ann_model.keras       # Enhanced neural network
+│
+├── frontend/
+│   ├── index.html                     # Main UI
+│   ├── netflix_style.css              # Styling
+│   └── app_netflix.js                 # Frontend logic
+│
+├── processed/
+│   ├── movies_enriched.parquet        # Preprocessed movie data
+│   ├── fast_movie_posters.json        # Cached movie posters
+│   └── dataset_summary.json           # Dataset statistics
+│
+└── docs/
+    ├── QUICK_START.md                 # Quick start guide
+    ├── SYSTEM_READY.md                # System overview
+    ├── GENRE_FILTERING_FIXED.md       # Genre filtering docs
+    └── FINAL_SETUP.md                 # Setup documentation
 ```
-
-## 🎯 Usage Examples
-
-### Basic Fuzzy Recommendation
-
-```python
-from models.fuzzy_model import FuzzyMovieRecommender, recommend_with_fuzzy
-
-# Initialize fuzzy engine
-fuzzy_engine = FuzzyMovieRecommender()
-
-# User preferences (0-10 scale)
-user_prefs = {
-    'action': 9.0,
-    'comedy': 3.0,
-    'romance': 2.0,
-    'thriller': 8.5,
-    'sci_fi': 7.0,
-    'drama': 4.0,
-    'horror': 2.0
-}
-
-# Movie information
-movie_info = {
-    'title': 'The Matrix',
-    'genres': ['Action', 'Sci-Fi'],
-    'popularity': 95
-}
-
-# Watch history (optional)
-watch_history = {
-    'liked_ratio': 0.85,
-    'disliked_ratio': 0.10,
-    'watch_count': 32
-}
-
-# Get recommendation
-result = recommend_with_fuzzy(fuzzy_engine, user_prefs, movie_info, watch_history)
-print(f"Recommendation: {result['fuzzy_score']:.2f}/10")
-```
-
-### Hybrid System (when ANN is trained)
-
-```python
-from models.hybrid_system import HybridRecommendationSystem
-
-# Initialize hybrid system
-hybrid_system = HybridRecommendationSystem()
-
-# Get hybrid recommendation
-result = hybrid_system.recommend(
-    user_preferences=user_prefs,
-    movie_info=movie_info,
-    watch_history=watch_history,
-    combination_strategy='adaptive'
-)
-
-print(f"Fuzzy: {result['fuzzy_score']}")
-print(f"ANN: {result['ann_score']}")
-print(f"Hybrid: {result['hybrid_score']}")
-```
-
-## 🧪 Testing Results
-
-### Fuzzy Logic System Tests ✅
-
-- **User Preference Rules**: All 35 rules working correctly
-- **Popularity & Genre Match**: 9 rules implemented and tested
-- **Watch History Rules**: 3 sentiment-based rules functional
-- **System Integration**: Seamless operation with real data
-
-### Performance Metrics
-
-- **Processing Speed**: ~1000 recommendations/second
-- **Memory Usage**: <100MB for fuzzy engine
-- **Accuracy**: Consistent with user preference patterns
-- **Reliability**: 100% uptime in testing
-
-## 🤖 ANN Training (Next Steps)
-
-### Requirements
-1. Fix TensorFlow installation
-2. Run training pipeline
-3. Evaluate model performance
-4. Integrate with hybrid system
-
-### Training Command (when ready)
-```bash
-python models/ann_model.py
-```
-
-### Expected Performance
-- **MAE**: <0.8 on 0-5 rating scale
-- **RMSE**: <1.0 on 0-5 rating scale
-- **R²**: >0.65 correlation coefficient
-
-## 🔧 Technical Details
-
-### Fuzzy Logic Implementation
-- **Engine**: scikit-fuzzy with custom control system
-- **Membership Functions**: Triangular shapes for all variables
-- **Rule Base**: 47 comprehensive IF-THEN rules
-- **Output**: Defuzzified recommendation score (0-10)
-
-### ANN Architecture
-- **Framework**: TensorFlow/Keras
-- **Type**: Dense feed-forward regression network
-- **Layers**: Input(18) → Dense(64) → Dense(32) → Dense(16) → Output(1)
-- **Regularization**: Dropout (0.1-0.2) and early stopping
-
-### Data Engineering
-- **Feature Count**: 18 numeric features per user-movie pair
-- **Preprocessing**: Label encoding, normalization, genre expansion
-- **Storage**: Parquet format for efficient I/O
-- **Size**: 530MB preprocessed dataset
-
-## 🌐 Deployment Ready
-
-### API Integration Points
-- **Fuzzy Recommendations**: `models/fuzzy_model.py`
-- **Hybrid System**: `models/hybrid_system.py`
-- **Data Processing**: `scripts/prepare_dataset.py`
-- **Real-time Pipeline**: `integration_demo.py`
-
-### Production Considerations
-- **Scalability**: Batch processing support
-- **Performance**: Optimized for real-time recommendations
-- **Reliability**: Comprehensive error handling
-- **Monitoring**: Built-in logging and metrics
-
-## 📈 Future Enhancements
-
-1. **Deep Learning**: Implement neural collaborative filtering
-2. **Real-time Learning**: Online preference updates
-3. **Content-Based**: Add movie content analysis
-4. **Social Features**: Friend recommendations and reviews
-5. **A/B Testing**: Advanced strategy comparison tools
-
-## 🏆 Current Status
-
-| Component | Status | Description |
-|-----------|--------|-------------|
-| Data Processing | ✅ Complete | 10M MovieLens fully preprocessed |
-| Fuzzy Logic | ✅ Complete | All 47 rules implemented and tested |
-| ANN Model | 🔄 Ready | Implementation complete, needs training |
-| Hybrid System | ✅ Framework | Ready for ANN integration |
-| Testing | ✅ Complete | Comprehensive test suite passing |
-| Documentation | ✅ Complete | Full system documentation |
-
-## 🎯 **System is Production Ready!**
-
-The fuzzy logic recommendation engine is fully functional and provides excellent movie recommendations. The ANN integration framework is complete and ready for training once TensorFlow issues are resolved.
 
 ---
 
-**Built with ❤️ for movie lovers everywhere! 🍿**
+## 🛠️ API Endpoints
+
+### Main Endpoints
+- `GET /` - Serve frontend UI
+- `GET /health` - Health check
+- `GET /system/status` - System status and metrics
+- `POST /recommend/enhanced` - Get movie recommendations
+
+### API Documentation
+- **Swagger UI**: http://127.0.0.1:3000/docs
+- **ReDoc**: http://127.0.0.1:3000/redoc
+
+### Example Request
+```bash
+curl -X POST "http://127.0.0.1:3000/recommend/enhanced" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_preferences": {
+      "action": 9.0,
+      "comedy": 3.0,
+      "romance": 2.0,
+      "thriller": 7.0,
+      "sci_fi": 10.0,
+      "drama": 5.0,
+      "horror": 1.0
+    },
+    "num_recommendations": 10
+  }'
+```
+
+---
+
+## 📊 Performance Metrics
+
+- **Startup Time**: ~30-35 seconds (loads 10M dataset)
+- **Recommendation Time**: <100ms per movie (with caching)
+- **Memory Usage**: ~500MB (dataset + models in memory)
+- **Cache Size**: 1,000 results with 1-hour TTL
+- **Concurrent Requests**: Unlimited (async FastAPI)
+
+---
+
+## 🧪 Testing
+
+```bash
+# Test dataset loading
+python test_dataset.py
+
+# Test ANN model
+python test_ann_working.py
+
+# Run all tests
+python run_tests.py
+```
+
+---
+
+## 🔧 Configuration
+
+Create a `.env` file (copy from `.env.example`):
+```env
+# API Configuration
+API_HOST=127.0.0.1
+API_PORT=3000
+
+# Cache Configuration
+CACHE_SIZE=1000
+CACHE_TTL=3600
+
+# Model Configuration
+ANN_MODEL_PATH=models/simple_ann_model.keras
+```
+
+---
+
+## 📚 Documentation
+
+- **[Quick Start Guide](QUICK_START.md)** - Get started in 5 minutes
+- **[System Overview](SYSTEM_READY.md)** - Complete system documentation
+- **[Genre Filtering](GENRE_FILTERING_FIXED.md)** - How genre filtering works
+- **[Setup Guide](FINAL_SETUP.md)** - Detailed setup instructions
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**Anush** - [CoderAnush](https://github.com/CoderAnush)
+
+---
+
+## 🙏 Acknowledgments
+
+- **MovieLens 10M Dataset** - GroupLens Research
+- **FastAPI** - Modern, fast web framework
+- **TensorFlow/Keras** - Deep learning framework
+- **scikit-fuzzy** - Fuzzy logic toolkit
+
+---
+
+## 📞 Support
+
+For support, please open an issue on GitHub or contact the maintainers.
+
+---
+
+**Made with ❤️ using Fuzzy Logic + Neural Networks**

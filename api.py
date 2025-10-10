@@ -178,6 +178,12 @@ frontend_path = project_root / "frontend"
 if frontend_path.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
 
+# Mount posters directory for fast local poster serving
+posters_path = frontend_path / "posters"
+if posters_path.exists():
+    app.mount("/posters", StaticFiles(directory=str(posters_path)), name="posters")
+    logger.info(f"📁 Mounted posters directory at /posters")
+
 # Global system instances
 hybrid_system = None
 optimized_system = None
