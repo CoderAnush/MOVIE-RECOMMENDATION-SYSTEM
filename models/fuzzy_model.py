@@ -25,7 +25,29 @@ class FuzzyMovieRecommender:
     
     def __init__(self):
         """Initialize the fuzzy recommendation system with all rules and membership functions."""
-        self.genres = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror']
+        # Core genres that the system was originally trained on
+        self.core_genres = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror']
+        
+        # Extended genres with mapping to core genres for fuzzy rules
+        self.extended_genres = {
+            'fantasy': 'sci_fi',        # Map fantasy to sci-fi 
+            'adventure': 'action',      # Map adventure to action
+            'crime': 'thriller',        # Map crime to thriller
+            'mystery': 'thriller',      # Map mystery to thriller
+            'animation': 'comedy',      # Map animation to comedy
+            'western': 'action',        # Map western to action
+            'war': 'action',           # Map war to action
+            'documentary': 'drama',     # Map documentary to drama
+            'biography': 'drama',       # Map biography to drama
+            'history': 'drama',         # Map history to drama
+            'music': 'drama',          # Map music to drama
+            'sport': 'drama'           # Map sport to drama
+        }
+        
+        # All supported genres (core + extended)
+        self.genres = self.core_genres  # Fuzzy rules still use core genres
+        self.all_supported_genres = self.core_genres + list(self.extended_genres.keys())
+        
         self._setup_fuzzy_variables()
         self._create_rules()
         self._build_control_system()
@@ -149,10 +171,33 @@ class FuzzyMovieRecommender:
             logger.error(f"❌ Error building control system: {e}")
             raise
     
+    def map_extended_genres(self, user_preferences: Dict[str, float]) -> Dict[str, float]:
+        """Map extended genres to core genres for fuzzy rule compatibility."""
+        mapped_prefs = {}
+        
+        # Start with core genres
+        for genre in self.core_genres:
+            mapped_prefs[genre] = user_preferences.get(genre, 5.0)
+        
+        # Add weighted contributions from extended genres
+        for extended_genre, core_genre in self.extended_genres.items():
+            if extended_genre in user_preferences:
+                extended_pref = user_preferences[extended_genre]
+                # Blend the extended preference with the core genre (70% core, 30% extended)
+                if core_genre in mapped_prefs:
+                    mapped_prefs[core_genre] = (mapped_prefs[core_genre] * 0.7 + extended_pref * 0.3)
+                else:
+                    mapped_prefs[core_genre] = extended_pref
+        
+        return mapped_prefs
+    
     def calculate_genre_match(self, user_preferences: Dict[str, float], movie_genres: List[str]) -> float:
         """Calculate genre match score (0-1) between user preferences and movie genres."""
         if not movie_genres:
             return 0.0
+        
+        # Map extended genres to core genres for compatibility
+        mapped_prefs = self.map_extended_genres(user_preferences)
         
         # Normalize genre names
         movie_genres_norm = [g.lower().replace('-', '_').replace(' ', '_') for g in movie_genres]
@@ -208,6 +253,9 @@ class FuzzyMovieRecommender:
             movie_genres = movie.get('genres', [])
             popularity_val = movie.get('popularity', 50.0)
             
+            # Map extended genres to core genres for fuzzy compatibility
+            mapped_prefs = self.map_extended_genres(user_preferences)
+            
             # Calculate derived values
             genre_match_val = self.calculate_genre_match(user_preferences, movie_genres)
             sentiment_val = self.calculate_watch_sentiment(watch_history or {})
@@ -215,13 +263,26 @@ class FuzzyMovieRecommender:
             # Set inputs for simulation
             inputs = {}
             
-            # User preferences for each genre
+            # User preferences for each core genre (using mapped preferences)
             for genre in self.genres:
-                pref_val = user_preferences.get(genre, 5.0)
+                pref_val = mapped_prefs.get(genre, 5.0)
                 inputs[f'{genre}_pref'] = max(0, min(10, pref_val))
                 
-                # Genre presence
-                genre_present = 1 if any(g.lower().replace('-', '_') == genre for g in movie_genres) else 0
+                # Genre presence - check both core and extended genres
+                genre_present = 0
+                
+                # Check direct match with core genre
+                if any(g.lower().replace('-', '_').replace(' ', '_') == genre for g in movie_genres):
+                    genre_present = 1
+                else:
+                    # Check if any extended genre maps to this core genre
+                    for ext_genre, core_genre in self.extended_genres.items():
+                        if core_genre == genre:
+                            ext_genre_norm = ext_genre.replace('_', '').replace('-', '')
+                            if any(ext_genre_norm in g.lower().replace('-', '').replace(' ', '') for g in movie_genres):
+                                genre_present = 1
+                                break
+                
                 inputs[f'{genre}_present'] = genre_present
             
             # Other inputs

@@ -5,7 +5,8 @@
 
 class NetflixMovieRecommender {
     constructor() {
-        this.apiUrl = 'http://127.0.0.1:3000';
+        // API Configuration
+        this.apiUrl = 'http://127.0.0.1:3000'; // Updated to match server port
         this.currentRecommendations = [];
         this.isLoading = false;
         
@@ -63,11 +64,48 @@ class NetflixMovieRecommender {
             
             // Update display on input
             slider.addEventListener('input', () => {
-                valueDisplay.textContent = slider.value;
+                let displayValue = slider.value;
+                
+                // Special formatting for percentage sliders
+                if (slider.id.includes('weight') || slider.id === 'diversity') {
+                    displayValue = slider.value + '%';
+                }
+                
+                if (valueDisplay) {
+                    valueDisplay.textContent = displayValue;
+                }
                 this.updateSliderColor(slider);
+                
+                // Auto-adjust complementary AI weights
+                if (slider.id === 'fuzzy-weight') {
+                    const annSlider = document.getElementById('ann-weight');
+                    const annDisplay = document.getElementById('ann-weight-value');
+                    if (annSlider && annDisplay) {
+                        const newAnnValue = 100 - parseInt(slider.value);
+                        annSlider.value = newAnnValue;
+                        annDisplay.textContent = newAnnValue + '%';
+                        this.updateSliderColor(annSlider);
+                    }
+                } else if (slider.id === 'ann-weight') {
+                    const fuzzySlider = document.getElementById('fuzzy-weight');
+                    const fuzzyDisplay = document.getElementById('fuzzy-weight-value');
+                    if (fuzzySlider && fuzzyDisplay) {
+                        const newFuzzyValue = 100 - parseInt(slider.value);
+                        fuzzySlider.value = newFuzzyValue;
+                        fuzzyDisplay.textContent = newFuzzyValue + '%';
+                        this.updateSliderColor(fuzzySlider);
+                    }
+                }
             });
 
-            // Initialize color
+            // Initialize display and color
+            let displayValue = slider.value;
+            if (slider.id.includes('weight') || slider.id === 'diversity') {
+                displayValue = slider.value + '%';
+            }
+            if (valueDisplay) {
+                valueDisplay.textContent = displayValue;
+            }
             this.updateSliderColor(slider);
         });
     }
@@ -242,12 +280,18 @@ class NetflixMovieRecommender {
         event.target.classList.add('active');
 
         const presets = {
-            action: { action: 9, thriller: 8, scifi: 7, drama: 4, comedy: 3, romance: 2, horror: 5, fantasy: 6 },
-            comedy: { comedy: 9, romance: 7, drama: 5, action: 4, scifi: 3, thriller: 2, horror: 1, fantasy: 4 },
-            drama: { drama: 9, romance: 7, thriller: 6, action: 4, comedy: 5, scifi: 3, horror: 2, fantasy: 4 },
-            scifi: { scifi: 9, action: 8, thriller: 7, fantasy: 6, drama: 4, comedy: 3, romance: 2, horror: 5 },
-            horror: { horror: 9, thriller: 8, action: 6, scifi: 5, drama: 3, comedy: 2, romance: 1, fantasy: 7 },
-            romance: { romance: 9, drama: 8, comedy: 7, fantasy: 5, action: 3, thriller: 2, scifi: 2, horror: 1 }
+            action: { action: 9, thriller: 8, scifi: 7, drama: 4, comedy: 3, romance: 2, horror: 5, fantasy: 6, adventure: 8, crime: 6 },
+            comedy: { comedy: 9, romance: 7, drama: 5, action: 4, scifi: 3, thriller: 2, horror: 1, fantasy: 4, animation: 7, adventure: 5 },
+            drama: { drama: 9, romance: 7, thriller: 6, action: 4, comedy: 5, scifi: 3, horror: 2, fantasy: 4, crime: 6, mystery: 5 },
+            scifi: { scifi: 9, action: 8, thriller: 7, fantasy: 6, drama: 4, comedy: 3, romance: 2, horror: 5, adventure: 7, animation: 4 },
+            horror: { horror: 9, thriller: 8, action: 6, scifi: 5, drama: 3, comedy: 2, romance: 1, fantasy: 7, mystery: 7, crime: 5 },
+            romance: { romance: 9, drama: 8, comedy: 7, fantasy: 5, action: 3, thriller: 2, scifi: 2, horror: 1, animation: 4, adventure: 4 },
+            adventure: { adventure: 9, action: 8, fantasy: 7, scifi: 6, thriller: 5, drama: 4, comedy: 5, romance: 4, animation: 6, western: 5 },
+            mystery: { mystery: 9, thriller: 8, crime: 8, drama: 7, action: 5, scifi: 4, horror: 6, comedy: 3, romance: 2, fantasy: 4 },
+            fantasy: { fantasy: 9, adventure: 8, scifi: 6, action: 7, drama: 5, romance: 4, comedy: 4, thriller: 5, animation: 7, horror: 3 },
+            animation: { animation: 9, comedy: 8, fantasy: 7, adventure: 6, family: 9, romance: 5, action: 4, drama: 6, scifi: 5, horror: 1 },
+            classic: { drama: 8, romance: 7, thriller: 6, action: 5, comedy: 6, scifi: 3, horror: 4, fantasy: 3, crime: 6, western: 7 },
+            modern: { action: 8, scifi: 8, thriller: 7, comedy: 7, drama: 6, fantasy: 7, horror: 5, romance: 5, adventure: 8, crime: 6 }
         };
 
         const preset = presets[presetType];
@@ -270,6 +314,96 @@ class NetflixMovieRecommender {
                         item.style.transform = 'scale(1)';
                     }, 200);
                 }, index * 50);
+            });
+        }
+    }
+
+    applyMood(moodType) {
+        // Remove active styling from all mood buttons
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.background = 'linear-gradient(135deg, var(--netflix-dark-gray), var(--netflix-gray))';
+        });
+
+        // Add active styling to clicked button
+        event.target.classList.add('active');
+        event.target.style.background = 'linear-gradient(135deg, var(--netflix-red), var(--netflix-dark-red))';
+
+        const moods = {
+            chill: { 
+                genres: { comedy: 8, romance: 7, drama: 6, animation: 7, fantasy: 5, action: 3, thriller: 2, horror: 1 },
+                settings: { 'min-rating': 6.5, 'popularity-weight': 'medium', 'diversity': 20 }
+            },
+            intense: { 
+                genres: { action: 9, thriller: 9, horror: 8, crime: 8, scifi: 7, drama: 5, adventure: 8, mystery: 7 },
+                settings: { 'min-rating': 7.0, 'popularity-weight': 'high', 'diversity': 10 }
+            },
+            emotional: { 
+                genres: { drama: 9, romance: 8, family: 7, animation: 6, fantasy: 5, comedy: 4, action: 2, horror: 1 },
+                settings: { 'min-rating': 7.5, 'popularity-weight': 'medium', 'diversity': 15 }
+            },
+            family: { 
+                genres: { animation: 9, family: 9, comedy: 8, adventure: 7, fantasy: 7, romance: 4, drama: 5, action: 3 },
+                settings: { 'min-rating': 6.0, 'family-friendly': true, 'no-violence': true, 'diversity': 25 }
+            },
+            date: { 
+                genres: { romance: 9, comedy: 8, drama: 7, fantasy: 6, thriller: 4, action: 3, scifi: 3, horror: 1 },
+                settings: { 'min-rating': 7.0, 'popularity-weight': 'medium', 'diversity': 20 }
+            },
+            solo: { 
+                genres: { thriller: 8, mystery: 8, scifi: 7, drama: 7, crime: 6, horror: 6, action: 5, fantasy: 6 },
+                settings: { 'min-rating': 7.0, 'popularity-weight': 'low', 'diversity': 40 }
+            },
+            brainy: { 
+                genres: { scifi: 8, drama: 8, mystery: 7, thriller: 6, crime: 6, documentary: 9, biography: 8, history: 7 },
+                settings: { 'min-rating': 7.5, 'award-winners': true, 'diversity': 30 }
+            },
+            escapist: { 
+                genres: { fantasy: 9, scifi: 8, adventure: 8, animation: 7, action: 7, comedy: 6, romance: 5, horror: 3 },
+                settings: { 'min-rating': 6.5, 'popularity-weight': 'high', 'diversity': 15 }
+            }
+        };
+
+        const mood = moods[moodType];
+        if (mood) {
+            // Apply genre preferences
+            Object.entries(mood.genres).forEach(([genre, value]) => {
+                const slider = document.getElementById(genre);
+                const valueDisplay = document.getElementById(`${genre}-value`);
+                if (slider && valueDisplay) {
+                    slider.value = value;
+                    valueDisplay.textContent = value;
+                    this.updateSliderColor(slider);
+                }
+            });
+
+            // Apply additional settings
+            Object.entries(mood.settings).forEach(([setting, value]) => {
+                const element = document.getElementById(setting);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = value === true;
+                    } else if (element.type === 'number' || element.type === 'range') {
+                        element.value = value;
+                        const valueDisplay = document.getElementById(`${setting}-value`);
+                        if (valueDisplay) {
+                            valueDisplay.textContent = typeof value === 'number' ? 
+                                (setting.includes('weight') ? `${value}%` : value) : value;
+                        }
+                    } else if (element.tagName === 'SELECT') {
+                        element.value = value;
+                    }
+                }
+            });
+
+            // Add smooth animation effect for mood selection
+            document.querySelectorAll('.preference-item').forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        item.style.transform = 'scale(1)';
+                    }, 150);
+                }, index * 25);
             });
         }
     }
@@ -436,34 +570,75 @@ class NetflixMovieRecommender {
         const userPreferences = {};
         const sliders = document.querySelectorAll('.slider');
         
-        // Map frontend field names to API field names
+        // Map frontend field names to API field names and collect all preferences
         const fieldMapping = {
-            'scifi': 'sci_fi',
-            'fantasy': 'sci_fi'  // Map fantasy to sci_fi since API doesn't have fantasy
+            'scifi': 'sci_fi'
         };
         
         sliders.forEach(slider => {
             const fieldName = fieldMapping[slider.id] || slider.id.replace('-', '_');
-            // Only include fields that are expected by the API
-            if (['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'].includes(fieldName)) {
-                userPreferences[fieldName] = parseFloat(slider.value);
-            }
+            userPreferences[fieldName] = parseFloat(slider.value);
         });
         
-        // Ensure all required fields are present with default values
-        const requiredFields = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'];
-        requiredFields.forEach(field => {
+        // Ensure core required fields are present with default values
+        const coreFields = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'];
+        coreFields.forEach(field => {
             if (userPreferences[field] === undefined) {
                 userPreferences[field] = 5.0;  // Default value
             }
         });
+        
+        // Collect advanced preferences
+        const advancedPrefs = {};
+        
+        // Year filters
+        const minYear = document.getElementById('min-year')?.value;
+        const maxYear = document.getElementById('max-year')?.value;
+        if (minYear) advancedPrefs.min_year = parseInt(minYear);
+        if (maxYear) advancedPrefs.max_year = parseInt(maxYear);
+        
+        // Rating filter
+        const minRating = document.getElementById('min-rating')?.value;
+        if (minRating) advancedPrefs.min_rating = parseFloat(minRating);
+        
+        // Popularity weight
+        const popularityWeight = document.getElementById('popularity-weight')?.value;
+        if (popularityWeight) advancedPrefs.popularity_weight = popularityWeight;
+        
+        // Content filters
+        const familyFriendly = document.getElementById('family-friendly')?.checked;
+        const noViolence = document.getElementById('no-violence')?.checked;
+        const subtitlesOk = document.getElementById('subtitles-ok')?.checked;
+        const awardWinners = document.getElementById('award-winners')?.checked;
+        
+        if (familyFriendly) advancedPrefs.family_friendly = true;
+        if (noViolence) advancedPrefs.no_violence = true;
+        if (subtitlesOk) advancedPrefs.subtitles_ok = true;
+        if (awardWinners) advancedPrefs.award_winners = true;
+        
+        // AI engine weights
+        const fuzzyWeight = document.getElementById('fuzzy-weight')?.value;
+        const annWeight = document.getElementById('ann-weight')?.value;
+        const diversity = document.getElementById('diversity')?.value;
+        
+        if (fuzzyWeight) advancedPrefs.fuzzy_weight = parseInt(fuzzyWeight) / 100;
+        if (annWeight) advancedPrefs.ann_weight = parseInt(annWeight) / 100;
+        if (diversity) advancedPrefs.diversity = parseInt(diversity) / 100;
+        
+        // Watched movies
+        const watchedMoviesInput = document.getElementById('watched-movies')?.value;
+        const watchedMovies = watchedMoviesInput 
+            ? watchedMoviesInput.split(',').map(movie => movie.trim()).filter(movie => movie)
+            : [];
         
         // Get number of recommendations requested
         const numRecommendations = parseInt(document.getElementById('num-recommendations').value) || 10;
         
         return {
             user_preferences: userPreferences,
-            num_recommendations: numRecommendations
+            num_recommendations: numRecommendations,
+            watched_movies: watchedMovies,
+            advanced_preferences: advancedPrefs
         };
     }
 
@@ -616,6 +791,34 @@ class NetflixMovieRecommender {
                         </div>
                         <div class="reason-content">
                             <p>${movie.explanation}</p>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${(movie.fuzzy_score || movie.ann_score || movie.hybrid_score) ? `
+                    <div class="model-scores">
+                        <div class="scores-header">
+                            <strong>🤖 AI Model Scores</strong>
+                        </div>
+                        <div class="scores-grid">
+                            ${movie.hybrid_score ? `
+                                <div class="score-item overall">
+                                    <span class="score-value">${movie.hybrid_score.toFixed(1)}</span>
+                                    <span class="score-label">Overall Score</span>
+                                </div>
+                            ` : ''}
+                            ${movie.fuzzy_score ? `
+                                <div class="score-item fuzzy">
+                                    <span class="score-value">${movie.fuzzy_score.toFixed(1)}</span>
+                                    <span class="score-label">Fuzzy Logic</span>
+                                </div>
+                            ` : ''}
+                            ${movie.ann_score ? `
+                                <div class="score-item neural">
+                                    <span class="score-value">${movie.ann_score.toFixed(1)}</span>
+                                    <span class="score-label">Neural Network</span>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 ` : ''}
@@ -1075,6 +1278,10 @@ function scrollToPreferences() {
 
 function applyPreset(presetType) {
     window.recommender.applyPreset(presetType);
+}
+
+function applyMood(moodType) {
+    window.recommender.applyMood(moodType);
 }
 
 function resetForm() {

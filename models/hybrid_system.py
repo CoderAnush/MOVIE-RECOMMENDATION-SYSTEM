@@ -36,26 +36,46 @@ class HybridRecommendationSystem:
         self.fuzzy_engine = FuzzyMovieRecommender()
         self.ann_predictor = ANNMoviePredictor()
         
-        # Try to load ANN model
+        # Try to load ANN model and scaler
         self.ann_available = False
         self.ann_model = None
+        self.ann_scaler = None
         
         try:
             # Try loading simple ANN model first
             model_path = "models/simple_ann_model.keras"
+            scaler_path = "models/simple_ann_model_scaler.joblib"
+            
             if os.path.exists(model_path):
                 import tensorflow as tf
+                import joblib
+                
+                # Load model
                 self.ann_model = tf.keras.models.load_model(model_path)
+                
+                # Load scaler if available (for enhanced model)
+                if os.path.exists(scaler_path):
+                    self.ann_scaler = joblib.load(scaler_path)
+                    logger.info(f"✅ Enhanced ANN model and scaler loaded from {model_path}")
+                else:
+                    logger.info(f"✅ ANN model loaded (no scaler) from {model_path}")
+                
                 self.ann_available = True
-                logger.info(f"✅ ANN model loaded successfully from {model_path}")
             else:
                 # Try enhanced model
                 model_path = "models/enhanced_ann_model.keras"
+                scaler_path = "models/enhanced_ann_model_scaler.joblib"
                 if os.path.exists(model_path):
                     import tensorflow as tf
+                    import joblib
+                    
                     self.ann_model = tf.keras.models.load_model(model_path)
+                    if os.path.exists(scaler_path):
+                        self.ann_scaler = joblib.load(scaler_path)
+                        logger.info(f"✅ Enhanced ANN model and scaler loaded from {model_path}")
+                    else:
+                        logger.info(f"✅ Enhanced ANN model loaded (no scaler) from {model_path}")
                     self.ann_available = True
-                    logger.info(f"✅ Enhanced ANN model loaded successfully from {model_path}")
                 else:
                     logger.warning("⚠️ ANN model not found. Using fuzzy-only predictions.")
         except Exception as e:
@@ -156,7 +176,7 @@ class HybridRecommendationSystem:
     def _prepare_ann_features(self, user_preferences: Dict[str, float],
                              movie_info: Dict[str, Any],
                              watch_history: Optional[Dict[str, float]] = None) -> np.ndarray:
-        """Prepare features for ANN model prediction.
+        """Prepare features for ANN model prediction with extended genre support.
         
         Enhanced model expects 20 features:
         - movie_rating, movie_popularity, movie_year, movie_runtime, movie_budget, movie_box_office (6)
@@ -166,8 +186,21 @@ class HybridRecommendationSystem:
         Total: 20 features
         
         Simple model expects 19 features (same but without movie_box_office)
+        
+        Extended Genre Mapping for ANN Compatibility:
+        Maps 12 additional frontend genres to 7 core ANN genres for seamless operation.
         """
         features = []
+        
+        # Extended genre mapping for ANN compatibility
+        extended_to_core_mapping = {
+            'fantasy': 'sci_fi',        'adventure': 'action',
+            'crime': 'thriller',        'mystery': 'thriller',
+            'animation': 'comedy',      'western': 'action',
+            'war': 'action',           'documentary': 'drama',
+            'biography': 'drama',       'history': 'drama',
+            'music': 'drama',          'sport': 'drama'
+        }
         
         # Movie features (6 for enhanced, 5 for simple)
         features.append(movie_info.get('rating', 7.0))  # movie_rating
@@ -180,21 +213,53 @@ class HybridRecommendationSystem:
         if hasattr(self.ann_model, 'input_shape') and self.ann_model.input_shape[1] == 20:
             features.append(movie_info.get('box_office', 0))  # movie_box_office (enhanced only)
         
-        # User preferences (7 features) - already normalized 0-10
-        genres = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror']
-        for genre in genres:
-            features.append(user_preferences.get(genre, 5.0))
+        # Core genres that ANN was trained on
+        core_genres = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror']
         
-        # Movie genres (7 features, one-hot encoding)
+        # Map extended genres to core genres for user preferences
+        mapped_preferences = {}
+        for genre in core_genres:
+            # Start with direct preference
+            mapped_preferences[genre] = user_preferences.get(genre, 5.0)
+        
+        # Add contributions from extended genres (blended approach)
+        for ext_genre, core_genre in extended_to_core_mapping.items():
+            if ext_genre in user_preferences:
+                ext_pref = user_preferences[ext_genre]
+                # Blend extended preference with core (70% original, 30% extended)
+                current_pref = mapped_preferences.get(core_genre, 5.0)
+                mapped_preferences[core_genre] = current_pref * 0.7 + ext_pref * 0.3
+        
+        # User preferences (7 features) - use mapped preferences
+        for genre in core_genres:
+            features.append(mapped_preferences.get(genre, 5.0))
+        
+        # Movie genres (7 features, one-hot encoding with extended genre support)
         movie_genres_str = str(movie_info.get('genres', '')).lower()
         movie_genres_list = [g.lower().replace('-', '_').replace(' ', '_') for g in movie_info.get('genres', [])] if isinstance(movie_info.get('genres', []), list) else []
         
-        for genre in genres:
-            # Check both string representation and list
-            has_genre = (genre in movie_genres_str or 
-                        genre.replace('_', ' ') in movie_genres_str or
-                        genre.replace('_', '-') in movie_genres_str or
-                        genre in movie_genres_list)
+        for genre in core_genres:
+            has_genre = False
+            
+            # Check direct core genre match
+            if (genre in movie_genres_str or 
+                genre.replace('_', ' ') in movie_genres_str or
+                genre.replace('_', '-') in movie_genres_str or
+                genre in movie_genres_list):
+                has_genre = True
+            else:
+                # Check extended genre mappings
+                for ext_genre, core_genre in extended_to_core_mapping.items():
+                    if core_genre == genre:
+                        ext_genre_variations = [
+                            ext_genre, ext_genre.replace('_', ' '), ext_genre.replace('_', '-'),
+                            ext_genre.replace(' ', '_'), ext_genre.replace('-', '_')
+                        ]
+                        if any(var in movie_genres_str for var in ext_genre_variations) or \
+                           any(var in movie_genres_list for var in ext_genre_variations):
+                            has_genre = True
+                            break
+            
             features.append(1.0 if has_genre else 0.0)
         
         return np.array([features], dtype=np.float32)
@@ -234,14 +299,22 @@ class HybridRecommendationSystem:
             try:
                 # Prepare features for ANN model
                 features = self._prepare_ann_features(user_preferences, movie_info, watch_history)
-                ann_prediction = self.ann_model.predict(features, verbose=0)
+                
+                # Apply scaler if available (for enhanced model)
+                if self.ann_scaler is not None:
+                    features_scaled = self.ann_scaler.transform(features)
+                else:
+                    features_scaled = features
+                
+                ann_prediction = self.ann_model.predict(features_scaled, verbose=0)
                 ann_score = float(ann_prediction[0][0])
                 
-                # Normalize to 0-10 scale if needed
-                if ann_score < 0:
-                    ann_score = 0
-                elif ann_score > 10:
-                    ann_score = 10
+                # Enhanced model outputs 0-1, convert to 0-10 scale
+                if self.ann_scaler is not None:
+                    ann_score = ann_score * 10.0  # Scale from 0-1 to 0-10
+                
+                # Ensure score is in valid range
+                ann_score = max(0, min(10, ann_score))
                     
                 result['ann_score'] = round(ann_score, 2)
                 result['explanation'] += f", ANN score: {ann_score:.2f}"

@@ -259,6 +259,198 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Mood Selectors */
+.mood-selectors {
+    background: linear-gradient(135deg, var(--netflix-gray), var(--netflix-dark-gray));
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border: 1px solid var(--netflix-light-gray);
+}
+
+.mood-title {
+    color: var(--netflix-white);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    background: linear-gradient(45deg, var(--netflix-red), #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.mood-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+}
+
+.mood-btn {
+    background: linear-gradient(135deg, var(--netflix-dark-gray), var(--netflix-gray));
+    color: var(--netflix-white);
+    border: 1px solid var(--netflix-light-gray);
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.mood-btn:hover {
+    background: linear-gradient(135deg, var(--netflix-red), var(--netflix-dark-red));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.mood-btn.active {
+    background: linear-gradient(135deg, var(--netflix-red), var(--netflix-dark-red)) !important;
+    box-shadow: 0 4px 16px rgba(229, 9, 20, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Advanced Preferences */
+.advanced-preferences {
+    background: linear-gradient(135deg, rgba(51, 51, 51, 0.8), rgba(24, 24, 24, 0.9));
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 1px solid var(--netflix-light-gray);
+}
+
+.preference-section-title {
+    color: var(--netflix-white);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    background: linear-gradient(45deg, var(--info-blue), #4dabf7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Content Filters */
+.content-filters {
+    margin: 1.5rem 0;
+    background: rgba(20, 20, 20, 0.6);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.filter-title {
+    color: var(--netflix-white);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--warning-yellow), #ffd43b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.filter-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--netflix-white);
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--netflix-light-gray);
+    border-radius: 4px;
+    margin-right: 0.8rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background-color: var(--netflix-red);
+    border-color: var(--netflix-red);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.checkbox-label:hover {
+    color: var(--netflix-red);
+}
+
+.checkmark {
+    margin-right: 0.5rem;
+}
+
+/* AI Settings */
+.ai-settings {
+    margin: 1.5rem 0;
+    background: rgba(20, 20, 20, 0.6);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.ai-title {
+    color: var(--netflix-white);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--success-green), #51cf66);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.ai-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Form Select Styling */
+.form-select {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--netflix-dark-gray);
+    color: var(--netflix-white);
+    border: 1px solid var(--netflix-light-gray);
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--netflix-red);
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+}
+
+.form-select option {
+    background: var(--netflix-dark-gray);
+    color: var(--netflix-white);
+}
+
 .preset-btn:hover, .preset-btn.active {
     background: var(--netflix-red);
     color: var(--netflix-white);
@@ -947,4 +1139,107 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--netflix-dark-red);
+}
+
+/* AI Model Scores */
+.model-scores {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scores-header {
+    margin-bottom: 0.75rem;
+    color: var(--netflix-white);
+    font-size: 0.9rem;
+}
+
+.scores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.5rem;
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.score-item.overall {
+    background: linear-gradient(135deg, var(--netflix-red), var(--netflix-dark-red));
+}
+
+.score-item.fuzzy {
+    background: linear-gradient(135deg, var(--success-green), #2d8f47);
+}
+
+.score-item.neural {
+    background: linear-gradient(135deg, var(--info-blue), #0056b3);
+}
+
+.score-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.score-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.score-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    line-height: 1.2;
+    margin-top: 0.2rem;
+}
+
+/* Enhanced recommendation reason styling */
+.recommendation-reason {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(229, 9, 20, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid var(--netflix-red);
+}
+
+.reason-header {
+    color: var(--netflix-red);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.reason-content p {
+    color: var(--netflix-white);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* Mobile adjustments for scores */
+@media (max-width: 768px) {
+    .scores-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+    }
+    
+    .score-item {
+        padding: 0.4rem;
+    }
+    
+    .score-value {
+        font-size: 1rem;
+    }
+    
+    .score-label {
+        font-size: 0.65rem;
+    }
 }

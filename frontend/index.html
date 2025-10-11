@@ -51,6 +51,27 @@
                 <button class="preset-btn" onclick="applyPreset('scifi')">🚀 Sci-Fi Geek</button>
                 <button class="preset-btn" onclick="applyPreset('horror')">👻 Horror Buff</button>
                 <button class="preset-btn" onclick="applyPreset('romance')">💕 Romance Lover</button>
+                <button class="preset-btn" onclick="applyPreset('adventure')">🗺️ Adventurer</button>
+                <button class="preset-btn" onclick="applyPreset('mystery')">🔍 Mystery Solver</button>
+                <button class="preset-btn" onclick="applyPreset('fantasy')">🧙 Fantasy World</button>
+                <button class="preset-btn" onclick="applyPreset('animation')">🎨 Animation Fan</button>
+                <button class="preset-btn" onclick="applyPreset('classic')">📽️ Classic Movies</button>
+                <button class="preset-btn" onclick="applyPreset('modern')">🆕 Modern Hits</button>
+            </div>
+            
+            <!-- Mood-Based Quick Selectors -->
+            <div class="mood-selectors">
+                <h3 class="mood-title">🎭 Choose Your Mood</h3>
+                <div class="mood-buttons">
+                    <button class="mood-btn" onclick="applyMood('chill')">😌 Chill & Relax</button>
+                    <button class="mood-btn" onclick="applyMood('intense')">⚡ High Energy</button>
+                    <button class="mood-btn" onclick="applyMood('emotional')">💭 Emotional Journey</button>
+                    <button class="mood-btn" onclick="applyMood('family')">👨‍👩‍👧‍👦 Family Night</button>
+                    <button class="mood-btn" onclick="applyMood('date')">💕 Date Night</button>
+                    <button class="mood-btn" onclick="applyMood('solo')">🍿 Solo Viewing</button>
+                    <button class="mood-btn" onclick="applyMood('brainy')">🧠 Intellectual</button>
+                    <button class="mood-btn" onclick="applyMood('escapist')">🌟 Pure Escapism</button>
+                </div>
             </div>
 
             <form id="preferences-form">
@@ -119,20 +140,145 @@
                             <span class="slider-value" id="fantasy-value">5</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Additional Preferences -->
-                <div class="preferences-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="watched-movies">🎥 Movies You've Watched (comma-separated)</label>
-                        <input type="text" id="watched-movies" name="watched-movies" class="form-input" 
-                               placeholder="e.g., The Matrix, Inception, Pulp Fiction">
+                    <div class="preference-item">
+                        <label class="preference-label" for="adventure">🗺️ Adventure</label>
+                        <div class="slider-container">
+                            <input type="range" id="adventure" name="adventure" min="1" max="10" value="5" class="slider">
+                            <span class="slider-value" id="adventure-value">5</span>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="num-recommendations">📊 Number of Recommendations</label>
-                        <input type="number" id="num-recommendations" name="num-recommendations" 
-                               class="form-input" min="1" max="50" value="10">
+                    <div class="preference-item">
+                        <label class="preference-label" for="crime">🔫 Crime</label>
+                        <div class="slider-container">
+                            <input type="range" id="crime" name="crime" min="1" max="10" value="5" class="slider">
+                            <span class="slider-value" id="crime-value">5</span>
+                        </div>
+                    </div>
+
+                    <div class="preference-item">
+                        <label class="preference-label" for="mystery">🔍 Mystery</label>
+                        <div class="slider-container">
+                            <input type="range" id="mystery" name="mystery" min="1" max="10" value="5" class="slider">
+                            <span class="slider-value" id="mystery-value">5</span>
+                        </div>
+                    </div>
+
+                    <div class="preference-item">
+                        <label class="preference-label" for="animation">🎨 Animation</label>
+                        <div class="slider-container">
+                            <input type="range" id="animation" name="animation" min="1" max="10" value="5" class="slider">
+                            <span class="slider-value" id="animation-value">5</span>
+                        </div>
+                    </div>
+
+                    <div class="preference-item">
+                        <label class="preference-label" for="western">🤠 Western</label>
+                        <div class="slider-container">
+                            <input type="range" id="western" name="western" min="1" max="10" value="5" class="slider">
+                            <span class="slider-value" id="western-value">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Preferences -->
+                <div class="advanced-preferences">
+                    <h3 class="preference-section-title">🎯 Advanced Preferences</h3>
+                    
+                    <div class="preferences-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="watched-movies">🎥 Movies You've Watched (comma-separated)</label>
+                            <input type="text" id="watched-movies" name="watched-movies" class="form-input" 
+                                   placeholder="e.g., The Matrix, Inception, Pulp Fiction">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="num-recommendations">📊 Number of Recommendations</label>
+                            <input type="number" id="num-recommendations" name="num-recommendations" 
+                                   class="form-input" min="1" max="50" value="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="min-year">📅 Minimum Year</label>
+                            <input type="number" id="min-year" name="min-year" 
+                                   class="form-input" min="1900" max="2025" value="1990" 
+                                   placeholder="e.g., 2000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="max-year">📅 Maximum Year</label>
+                            <input type="number" id="max-year" name="max-year" 
+                                   class="form-input" min="1900" max="2025" value="2025" 
+                                   placeholder="e.g., 2023">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="min-rating">⭐ Minimum Rating (1-10)</label>
+                            <input type="number" id="min-rating" name="min-rating" 
+                                   class="form-input" min="1" max="10" step="0.1" value="6.0" 
+                                   placeholder="e.g., 7.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="popularity-weight">📈 Popularity Importance</label>
+                            <select id="popularity-weight" name="popularity-weight" class="form-select">
+                                <option value="low">Low - Show me hidden gems</option>
+                                <option value="medium" selected>Medium - Balanced approach</option>
+                                <option value="high">High - Popular movies only</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Filters -->
+                    <div class="content-filters">
+                        <h4 class="filter-title">🛡️ Content Filters</h4>
+                        <div class="filter-checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="family-friendly" name="family-friendly">
+                                <span class="checkmark">👨‍👩‍👧‍👦</span> Family Friendly Only
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="no-violence" name="no-violence">
+                                <span class="checkmark">☮️</span> Minimal Violence
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="subtitles-ok" name="subtitles-ok" checked>
+                                <span class="checkmark">📝</span> Subtitled Movies OK
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="award-winners" name="award-winners">
+                                <span class="checkmark">🏆</span> Award Winners Preferred
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- AI Engine Settings -->
+                    <div class="ai-settings">
+                        <h4 class="ai-title">🤖 AI Engine Settings</h4>
+                        <div class="ai-controls">
+                            <div class="form-group">
+                                <label class="form-label" for="fuzzy-weight">🧠 Fuzzy Logic Weight</label>
+                                <div class="slider-container">
+                                    <input type="range" id="fuzzy-weight" name="fuzzy-weight" min="0" max="100" value="60" class="slider">
+                                    <span class="slider-value" id="fuzzy-weight-value">60%</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ann-weight">🔬 Neural Network Weight</label>
+                                <div class="slider-container">
+                                    <input type="range" id="ann-weight" name="ann-weight" min="0" max="100" value="40" class="slider">
+                                    <span class="slider-value" id="ann-weight-value">40%</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="diversity">🎲 Recommendation Diversity</label>
+                                <div class="slider-container">
+                                    <input type="range" id="diversity" name="diversity" min="0" max="100" value="30" class="slider">
+                                    <span class="slider-value" id="diversity-value">30%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
