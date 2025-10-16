@@ -18,6 +18,7 @@ class NetflixMovieRecommender {
         this.setupSliders();
         this.checkSystemHealth();
         this.setupScrollEffects();
+        this.setupCatalogSearch();
     }
 
     setupEventListeners() {
@@ -1355,6 +1356,154 @@ class NetflixMovieRecommender {
         // Reload catalog with cleared filters
         this.loadCatalog(1);
     }
+
+    // Enhanced Catalog Functions
+    debounceSearch(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    setupCatalogSearch() {
+        const searchInput = document.getElementById('catalog-search');
+        if (searchInput) {
+            const debouncedSearch = this.debounceSearch(() => {
+                this.filterCatalog();
+            }, 300);
+            
+            searchInput.addEventListener('input', debouncedSearch);
+        }
+    }
+
+    toggleAdvancedFilters() {
+        const filtersPanel = document.getElementById('advanced-filters');
+        const toggleBtn = document.querySelector('.filters-toggle');
+        
+        if (filtersPanel && toggleBtn) {
+            if (filtersPanel.style.display === 'none' || !filtersPanel.style.display) {
+                filtersPanel.style.display = 'block';
+                toggleBtn.innerHTML = '🔽 Hide Advanced Filters';
+            } else {
+                filtersPanel.style.display = 'none';
+                toggleBtn.innerHTML = '🔽 Show Advanced Filters';
+            }
+        }
+    }
+
+    quickGenreFilter(genre) {
+        // Clear existing filters
+        const elements = {
+            search: document.getElementById('catalog-search'),
+            genreSelect: document.getElementById('catalog-genre'),
+            sort: document.getElementById('catalog-sort'),
+            yearMin: document.getElementById('catalog-year-min'),
+            yearMax: document.getElementById('catalog-year-max'),
+            ratingMin: document.getElementById('catalog-rating-min')
+        };
+
+        if (elements.search) elements.search.value = '';
+        if (elements.genreSelect) elements.genreSelect.value = genre;
+        if (elements.sort) elements.sort.value = 'title';
+        if (elements.yearMin) elements.yearMin.value = '';
+        if (elements.yearMax) elements.yearMax.value = '';
+        if (elements.ratingMin) elements.ratingMin.value = '';
+        
+        // Apply filter
+        this.filterCatalog();
+    }
+
+    setView(viewType) {
+        const catalogGrid = document.getElementById('catalog-movies');
+        const viewButtons = document.querySelectorAll('.view-toggle button');
+        
+        if (catalogGrid) {
+            // Update button states
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            const activeButton = document.querySelector(`button[onclick*="${viewType}"]`);
+            if (activeButton) activeButton.classList.add('active');
+            
+            // Update grid class
+            catalogGrid.className = `catalog-grid ${viewType}-view`;
+        }
+    }
+
+    async filterCatalog() {
+        const searchTerm = document.getElementById('catalog-search')?.value.toLowerCase() || '';
+        const selectedGenre = document.getElementById('catalog-genre')?.value || '';
+        const sortBy = document.getElementById('catalog-sort')?.value || '';
+        const yearMin = document.getElementById('catalog-year-min')?.value || '';
+        const yearMax = document.getElementById('catalog-year-max')?.value || '';
+        const ratingMin = document.getElementById('catalog-rating-min')?.value || '';
+        
+        // Show loading
+        this.showCatalogLoading();
+        
+        try {
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('search', searchTerm);
+            if (selectedGenre) params.append('genre', selectedGenre);
+            if (sortBy) params.append('sort', sortBy);
+            if (yearMin) params.append('year_min', yearMin);
+            if (yearMax) params.append('year_max', yearMax);
+            if (ratingMin) params.append('rating_min', ratingMin);
+            
+            const response = await fetch(`${this.apiUrl}/catalog?${params.toString()}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.displayCatalogMovies(data.movies || []);
+                this.updateCatalogStats(data.stats || {});
+            } else {
+                throw new Error('Failed to fetch catalog data');
+            }
+            
+        } catch (error) {
+            console.error('Error filtering catalog:', error);
+            this.showError('Failed to filter movies. Please try again.');
+        } finally {
+            this.hideCatalogLoading();
+        }
+    }
+
+    showCatalogLoading() {
+        const loadingIndicator = document.getElementById('catalog-loading');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+    }
+
+    hideCatalogLoading() {
+        const loadingIndicator = document.getElementById('catalog-loading');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    updateCatalogStats(stats) {
+        const statsContainer = document.getElementById('catalog-statistics');
+        if (statsContainer && stats) {
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-number">${stats.total || 0}</span>
+                    <span class="stat-label">Total Movies</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${stats.filtered || 0}</span>
+                    <span class="stat-label">Showing</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${stats.avg_rating || 0}</span>
+                    <span class="stat-label">Avg Rating</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${stats.year_range || 'N/A'}</span>
+                    <span class="stat-label">Year Range</span>
+                </div>
+            `;
+        }
+    }
 }
 
 // Global functions for HTML onclick handlers
@@ -1371,6 +1520,25 @@ function applyPreset(presetType) {
 
 function applyMood(moodType) {
     window.recommender.applyMood(moodType);
+}
+
+// Enhanced catalog global functions
+function toggleAdvancedFilters() {
+    if (window.recommender) {
+        window.recommender.toggleAdvancedFilters();
+    }
+}
+
+function quickGenreFilter(genre) {
+    if (window.recommender) {
+        window.recommender.quickGenreFilter(genre);
+    }
+}
+
+function setView(viewType) {
+    if (window.recommender) {
+        window.recommender.setView(viewType);
+    }
 }
 
 function resetForm() {
@@ -1438,6 +1606,8 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', () => {
     window.recommender = new NetflixMovieRecommender();
 });
+
+
 
 // Add some Netflix-style easter eggs
 document.addEventListener('keydown', (e) => {
