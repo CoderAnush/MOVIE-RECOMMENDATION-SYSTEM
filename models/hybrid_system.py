@@ -42,9 +42,13 @@ class HybridRecommendationSystem:
         self.ann_scaler = None
         
         try:
+            # Get absolute path to models directory
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            models_dir = current_dir  # We're already in models directory
+            
             # Try loading simple ANN model first
-            model_path = "models/simple_ann_model.keras"
-            scaler_path = "models/simple_ann_model_scaler.joblib"
+            model_path = os.path.join(models_dir, "simple_ann_model.keras")
+            scaler_path = os.path.join(models_dir, "simple_ann_model_scaler.joblib")
             
             if os.path.exists(model_path):
                 import tensorflow as tf
@@ -63,8 +67,8 @@ class HybridRecommendationSystem:
                 self.ann_available = True
             else:
                 # Try enhanced model
-                model_path = "models/enhanced_ann_model.keras"
-                scaler_path = "models/enhanced_ann_model_scaler.joblib"
+                model_path = os.path.join(models_dir, "enhanced_ann_model.keras")
+                scaler_path = os.path.join(models_dir, "enhanced_ann_model_scaler.joblib")
                 if os.path.exists(model_path):
                     import tensorflow as tf
                     import joblib

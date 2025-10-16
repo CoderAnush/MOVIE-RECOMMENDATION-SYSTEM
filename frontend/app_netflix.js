@@ -76,6 +76,9 @@ class NetflixMovieRecommender {
                 }
                 this.updateSliderColor(slider);
                 
+                // Clear previous errors when user changes preferences
+                this.hideError();
+                
                 // Auto-adjust complementary AI weights
                 if (slider.id === 'fuzzy-weight') {
                     const annSlider = document.getElementById('ann-weight');
@@ -409,14 +412,40 @@ class NetflixMovieRecommender {
     }
 
     async getRecommendations() {
-        if (this.isLoading) return;
+        if (this.isLoading) {
+            console.log('Request already in progress, ignoring duplicate request');
+            return;
+        }
 
         this.isLoading = true;
         this.showLoading(true);
         this.hideError();
+        
+        // Disable the get recommendations button to prevent spam clicks
+        const getRecsButton = document.querySelector('button[onclick="movieApp.getRecommendations()"]');
+        if (getRecsButton) {
+            getRecsButton.disabled = true;
+            getRecsButton.textContent = 'Getting Recommendations...';
+        }
 
         try {
             const requestData = this.prepareEnhancedRecommendationRequest();
+            
+            // Debug logging
+            console.log('Sending recommendation request:', requestData);
+            
+            // Validate request data before sending
+            if (!requestData.user_preferences || Object.keys(requestData.user_preferences).length === 0) {
+                throw new Error('No user preferences specified');
+            }
+            
+            // Ensure required fields are present
+            const requiredFields = ['action', 'comedy', 'romance', 'thriller', 'drama', 'horror'];
+            for (const field of requiredFields) {
+                if (!(field in requestData.user_preferences)) {
+                    requestData.user_preferences[field] = 5.0; // Default value
+                }
+            }
             
             const response = await fetch(`${this.apiUrl}/recommend/enhanced`, {
                 method: 'POST',
@@ -427,16 +456,37 @@ class NetflixMovieRecommender {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Server response error:', errorText);
+                
+                let errorDetail = response.statusText;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.detail) {
+                        errorDetail = errorData.detail;
+                    }
+                } catch (e) {
+                    // Use response text if not JSON
+                    if (errorText) {
+                        errorDetail = errorText;
+                    }
+                }
+                
+                throw new Error(`HTTP ${response.status}: ${errorDetail}`);
             }
 
             const data = await response.json();
+            console.log('Received recommendation response:', data);
             
             if (data.detail) {
                 throw new Error(data.detail);
             }
 
-            this.currentRecommendations = data.recommendations || [];
+            if (!data.recommendations || !Array.isArray(data.recommendations)) {
+                throw new Error('Invalid response format: no recommendations array');
+            }
+
+            this.currentRecommendations = data.recommendations;
             this.displayRecommendations(data);
             
             // Smooth scroll to results
@@ -449,10 +499,37 @@ class NetflixMovieRecommender {
 
         } catch (error) {
             console.error('Error getting recommendations:', error);
-            this.showError(`Failed to get recommendations: ${error.message}`);
+            
+            let errorMessage = 'Failed to get recommendations';
+            
+            if (error.message.includes('422')) {
+                errorMessage = 'Invalid preferences. Please check your settings and try again.';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server error. Please try again in a moment.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Cannot connect to server. Please make sure the server is running.';
+            } else {
+                errorMessage = `Failed to get recommendations: ${error.message}`;
+            }
+            
+            this.showError(errorMessage);
+            
+            // Clear previous recommendations on error
+            this.currentRecommendations = [];
+            const moviesGrid = document.getElementById('movies-grid');
+            if (moviesGrid) {
+                moviesGrid.innerHTML = '<div style="text-align: center; color: var(--netflix-text-gray); padding: 2rem;">Please adjust your preferences and try again.</div>';
+            }
         } finally {
             this.isLoading = false;
             this.showLoading(false);
+            
+            // Re-enable the get recommendations button
+            const getRecsButton = document.querySelector('button[onclick="movieApp.getRecommendations()"]');
+            if (getRecsButton) {
+                getRecsButton.disabled = false;
+                getRecsButton.textContent = '🎯 Get Recommendations';
+            }
         }
     }
 
@@ -572,21 +649,33 @@ class NetflixMovieRecommender {
         
         // Map frontend field names to API field names and collect all preferences
         const fieldMapping = {
-            'scifi': 'sci_fi'
+            'scifi': 'sci_fi',
+            'sci-fi': 'sci_fi'
         };
         
         sliders.forEach(slider => {
+            if (!slider.id) return; // Skip sliders without ID
+            
             const fieldName = fieldMapping[slider.id] || slider.id.replace('-', '_');
-            userPreferences[fieldName] = parseFloat(slider.value);
+            const value = parseFloat(slider.value);
+            
+            // Validate the value is within expected range
+            if (!isNaN(value) && value >= 0 && value <= 10) {
+                userPreferences[fieldName] = value;
+            }
         });
         
         // Ensure core required fields are present with default values
         const coreFields = ['action', 'comedy', 'romance', 'thriller', 'sci_fi', 'drama', 'horror'];
         coreFields.forEach(field => {
-            if (userPreferences[field] === undefined) {
+            if (userPreferences[field] === undefined || isNaN(userPreferences[field])) {
                 userPreferences[field] = 5.0;  // Default value
             }
+            // Ensure values are within valid range
+            userPreferences[field] = Math.max(0, Math.min(10, userPreferences[field]));
         });
+        
+        console.log('Prepared user preferences:', userPreferences);
         
         // Collect advanced preferences
         const advancedPrefs = {};
@@ -660,7 +749,7 @@ class NetflixMovieRecommender {
         return {
             user_preferences: preferences,
             watched_movies: watchedMovies,
-            top_k: Math.min(numRecommendations, 50)
+            top_k: numRecommendations  // No limit - unlimited recommendations!
         };
     }
 
@@ -717,7 +806,7 @@ class NetflixMovieRecommender {
         const runtime = movie.runtime ? `${movie.runtime} min` : 'Unknown';
         
         // Scores (support both old and new format)
-        const predictedRating = movie.predicted_rating || movie.hybrid_score || 0;
+        const predictedRating = movie.predicted_rating || movie.hybrid_score || movie.score || 0;
         const confidence = movie.confidence || (movie.agreement || 0);
         const imdbRating = movie.rating || movie.avg_rating || 0;
         
@@ -866,7 +955,7 @@ class NetflixMovieRecommender {
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                 <div style="background: var(--netflix-gray); padding: 1rem; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 600; color: var(--netflix-red);">${(movie.score || 0).toFixed(1)}</div>
+                    <div style="font-size: 1.5rem; font-weight: 600; color: var(--netflix-red);">${(movie.score || movie.hybrid_score || movie.predicted_rating || 0).toFixed(1)}</div>
                     <div style="color: var(--netflix-text-gray);">Overall Score</div>
                 </div>
                 <div style="background: var(--netflix-gray); padding: 1rem; border-radius: 8px; text-align: center;">

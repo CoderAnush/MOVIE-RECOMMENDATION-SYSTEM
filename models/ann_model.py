@@ -50,6 +50,38 @@ The ANN predicts a numeric rating (0-10) based on:
    
 
 Total: ~18 numeric features → 1 output score (0-10)
+
+1. User Preferences (7 features)
+action_pref
+comedy_pref
+romance_pref
+thriller_pref
+sci_fi_pref
+drama_pref
+horror_pref
+(Each is a float, 0–10 scale, representing the user's preference for that genre.)
+
+2. Movie Genre Vector (7 features, one-hot)
+genre_action
+genre_comedy
+genre_romance
+genre_thriller
+genre_sci_fi
+genre_drama
+genre_horror
+(Each is 0 or 1, indicating if the movie belongs to that genre.)
+
+3. Movie Metadata (2 features)
+popularity (normalized 0–1)
+year_norm (normalized year, 0–1)
+4. Watch History (3 features)
+liked_ratio (fraction of movies user liked)
+disliked_ratio (fraction of movies user disliked)
+watch_count_norm (normalized watch count, log-scaled 0–1)
+Total:
+7 (user prefs) + 7 (genre one-hot) + 2 (metadata) + 3 (history) = 19 features
+
+(If year_norm is missing, it’s 18 features.)
 """
 
 import numpy as np
