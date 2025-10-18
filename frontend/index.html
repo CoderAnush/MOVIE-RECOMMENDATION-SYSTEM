@@ -11,14 +11,19 @@
     <!-- Header -->
     <header class="header" id="header">
         <nav class="nav">
-            <a href="#" class="logo">CineAI</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#preferences">Preferences</a></li>
-                <li><a href="#recommendations">Movies</a></li>
-                <li><a href="#metrics">Metrics</a></li>
-                <li><a href="#catalog" onclick="showCatalog()">Browse Catalog</a></li>
-                <li><a href="#about">About</a></li>
+            <a href="#home" class="logo">CineAI</a>
+            <button class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#home">🏠 Home</a></li>
+                <li><a href="#preferences">⚙️ Preferences</a></li>
+                <li><a href="#recommendations">🎬 Movies</a></li>
+                <li><a href="#metrics">📊 Metrics</a></li>
+                <li><a href="#catalog">📚 Browse Catalog</a></li>
+                <li><a href="#about">ℹ️ About</a></li>
             </ul>
         </nav>
     </header>
@@ -604,12 +609,46 @@
                     </div>
                 </div>
             </div>
-        </section>
-                <div class="metric-card">
-                    <h3>Hybrid Recommendations</h3>
-                    <p class="metric-value" id="metric-hybrid-agreement">Agreement: --</p>
-                    <p class="metric-caption">Adaptive Strategies & Confidence</p>
-                    <div class="metric-detail" id="metric-hybrid-details"></div>
+
+            <!-- Data Visualization Charts for Project Report -->
+            <div class="visualization-section">
+                <h3 class="section-title">📊 Data Visualization Dashboard</h3>
+                <p style="text-align: center; color: var(--netflix-text-gray); margin-bottom: 2rem;">
+                    Comprehensive statistical analysis and visualization for academic reporting
+                </p>
+                
+                <div class="charts-grid">
+                    <div class="chart-container" id="overview-chart-container">
+                        <!-- Dataset overview chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="genre-chart-container">
+                        <!-- Genre distribution chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="rating-chart-container">
+                        <!-- Rating distribution chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="year-chart-container">
+                        <!-- Movies per year chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="user-activity-chart">
+                        <!-- User activity chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="accuracy-chart">
+                        <!-- Recommendation accuracy chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="genre-trends-chart">
+                        <!-- Genre popularity trends chart will be generated here -->
+                    </div>
+                    
+                    <div class="chart-container" id="performance-metrics-chart">
+                        <!-- System performance metrics chart will be generated here -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -625,7 +664,7 @@
             <div class="search-container" style="text-align: center; margin-bottom: 2rem;">
                 <div class="search-box">
                     <input type="text" id="catalog-search" class="search-input" placeholder="🔍 Search movies by title..." 
-                           onkeyup="debounceSearch()" style="width: 100%; max-width: 500px; padding: 12px 20px; font-size: 16px; border-radius: 25px; border: 1px solid var(--netflix-red); background: var(--netflix-dark-gray); color: white;">
+                           style="width: 100%; max-width: 500px; padding: 12px 20px; font-size: 16px; border-radius: 25px; border: 1px solid var(--netflix-red); background: var(--netflix-dark-gray); color: white;">
                 </div>
             </div>
             
