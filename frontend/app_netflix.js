@@ -254,7 +254,7 @@ class NetflixMovieRecommender {
         document.getElementById('metric-architecture-details').innerHTML = `
             Dense Layers: 64→32→16→1<br>
             Dropout: 0.2, 0.15, 0.1<br>
-            Input Features: 19 • Output: 1
+            Input Features: 18 • Output: 1
         `;
         
         // Performance Monitor Data

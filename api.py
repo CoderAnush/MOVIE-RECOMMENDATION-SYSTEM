@@ -855,15 +855,21 @@ async def get_enhanced_recommendations_api(request: EnhancedRecommendationReques
         
         # Enhanced genre-based pre-filtering for better recommendations
         genre_filtered_movies = []
-        # Smart scaling: efficient for small requests, comprehensive for large requests
-        if request.num_recommendations <= 50:
-            base_pool = max(800, request.num_recommendations * 40)
-        elif request.num_recommendations <= 200:
-            base_pool = max(2000, request.num_recommendations * 20)  # More efficient for medium requests
+        # FIXED: Always use full database when user has strong genre preferences
+        # This ensures we don't miss movies from their preferred genres
+        if user_top_genres:
+            # User has strong preferences - search entire database
+            candidate_pool_size = len(REAL_MOVIES_DATABASE)
+            logger.info(f"Using full database ({candidate_pool_size} movies) due to strong genre preferences")
         else:
-            base_pool = len(REAL_MOVIES_DATABASE)  # Use full database for very large requests
-        
-        candidate_pool_size = min(base_pool, len(REAL_MOVIES_DATABASE))
+            # No strong preferences - can use smaller pool for efficiency
+            if request.num_recommendations <= 50:
+                base_pool = max(800, request.num_recommendations * 40)
+            elif request.num_recommendations <= 200:
+                base_pool = max(2000, request.num_recommendations * 20)
+            else:
+                base_pool = len(REAL_MOVIES_DATABASE)
+            candidate_pool_size = min(base_pool, len(REAL_MOVIES_DATABASE))
         
         for movie in REAL_MOVIES_DATABASE[:candidate_pool_size]:
             movie_genres_raw = movie.get('genres', [])
