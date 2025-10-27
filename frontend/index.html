@@ -331,6 +331,22 @@
         <section id="metrics" class="fade-in-up" style="display: none;">
             <h2 class="section-title">📈 System Metrics & Performance</h2>
             
+            <!-- Quick Navigation for Metrics -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <button onclick="document.getElementById('training-history-chart').scrollIntoView({behavior: 'smooth'})" 
+                        style="background: var(--netflix-red); color: white; border: none; padding: 10px 20px; border-radius: 25px; margin: 0 10px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease;">
+                    🧠 View Training Graph
+                </button>
+                <button onclick="document.getElementById('performance-chart').scrollIntoView({behavior: 'smooth'})" 
+                        style="background: var(--netflix-dark-gray); color: white; border: 1px solid var(--netflix-gray); padding: 10px 20px; border-radius: 25px; margin: 0 10px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease;">
+                    📊 Performance Monitor
+                </button>
+                <button onclick="document.getElementById('overview-chart-container').scrollIntoView({behavior: 'smooth'})" 
+                        style="background: var(--netflix-dark-gray); color: white; border: 1px solid var(--netflix-gray); padding: 10px 20px; border-radius: 25px; margin: 0 10px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease;">
+                    📈 Data Visualization
+                </button>
+            </div>
+            
             <!-- System Status -->
             <div class="system-status" id="system-status-display">
                 <div class="status-item">
@@ -606,6 +622,35 @@
                             <span class="stat-label">Top Strategy:</span>
                             <span class="stat-value" id="top-strategy">--</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANN Training History Graph -->
+            <div class="chart-container" id="training-history-chart">
+                <h3>🧠 ANN Training History</h3>
+                <div class="training-graph-container" style="text-align: center; padding: 2rem; background: var(--netflix-dark-gray); border-radius: 10px; margin: 2rem 0;">
+                    <img src="training_history.png" alt="ANN Training History" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);">
+                    <div class="training-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: center;">
+                        <div class="training-stat-item" style="background: var(--netflix-black); padding: 1rem; border-radius: 8px; border: 1px solid var(--netflix-gray);">
+                            <div style="color: var(--netflix-red); font-size: 1.2rem; font-weight: bold;">Final Training Loss</div>
+                            <div style="color: white; font-size: 1.5rem; margin-top: 0.5rem;">0.003</div>
+                        </div>
+                        <div class="training-stat-item" style="background: var(--netflix-black); padding: 1rem; border-radius: 8px; border: 1px solid var(--netflix-gray);">
+                            <div style="color: var(--netflix-red); font-size: 1.2rem; font-weight: bold;">Final Validation Loss</div>
+                            <div style="color: white; font-size: 1.5rem; margin-top: 0.5rem;">0.006</div>
+                        </div>
+                        <div class="training-stat-item" style="background: var(--netflix-black); padding: 1rem; border-radius: 8px; border: 1px solid var(--netflix-gray);">
+                            <div style="color: var(--netflix-red); font-size: 1.2rem; font-weight: bold;">Total Epochs</div>
+                            <div style="color: white; font-size: 1.5rem; margin-top: 0.5rem;">150/500</div>
+                        </div>
+                        <div class="training-stat-item" style="background: var(--netflix-black); padding: 1rem; border-radius: 8px; border: 1px solid var(--netflix-gray);">
+                            <div style="color: var(--netflix-red); font-size: 1.2rem; font-weight: bold;">Early Stopping</div>
+                            <div style="color: white; font-size: 1.5rem; margin-top: 0.5rem;">Enabled</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; color: var(--netflix-text-gray); font-size: 0.9rem;">
+                        📈 Training converged after 150 epochs with excellent loss reduction and minimal overfitting
                     </div>
                 </div>
             </div>

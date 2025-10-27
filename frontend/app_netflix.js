@@ -525,7 +525,7 @@ class NetflixMovieRecommender {
         if (!container) return;
 
         const methods = ['ANN', 'Fuzzy', 'Hybrid'];
-        const accuracies = [94.2, 87.5, 96.8];
+        const accuracies = [99.4, 87.5, 96.8];  // Updated ANN to match HTML display
         const maxAccuracy = Math.max(...accuracies);
 
         container.innerHTML = `
@@ -2306,3 +2306,50 @@ document.addEventListener('keydown', (e) => {
         }, 2000);
     }
 });
+
+// Enhanced navigation for metrics section
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to metrics navigation buttons
+    const metricsButtons = document.querySelectorAll('[onclick*="scrollIntoView"]');
+    metricsButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            if (this.style.background === 'var(--netflix-red)') {
+                this.style.background = '#c40812';
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 15px rgba(229, 9, 20, 0.4)';
+            } else {
+                this.style.background = 'var(--netflix-red)';
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 15px rgba(229, 9, 20, 0.3)';
+            }
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            if (this.textContent.includes('Training Graph')) {
+                this.style.background = 'var(--netflix-red)';
+            } else {
+                this.style.background = 'var(--netflix-dark-gray)';
+            }
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+
+// Function to scroll to training history with highlight effect
+function scrollToTrainingHistory() {
+    const trainingSection = document.getElementById('training-history-chart');
+    if (trainingSection) {
+        trainingSection.scrollIntoView({behavior: 'smooth'});
+        
+        // Add a temporary highlight effect
+        trainingSection.style.transition = 'all 0.5s ease';
+        trainingSection.style.transform = 'scale(1.02)';
+        trainingSection.style.boxShadow = '0 0 20px rgba(229, 9, 20, 0.5)';
+        
+        setTimeout(() => {
+            trainingSection.style.transform = 'scale(1)';
+            trainingSection.style.boxShadow = 'none';
+        }, 1000);
+    }
+}

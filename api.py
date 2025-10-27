@@ -467,11 +467,16 @@ class RecommendationResponse(BaseModel):
     agreement: Optional[float]
     recommendation_level: str
     processing_time_ms: float
+    # NEW: Metrics
+    metrics: Optional[Dict] = None
+    system_metrics: Optional[Dict] = None
 
 class BatchRecommendationResponse(BaseModel):
     recommendations: List[RecommendationResponse]
     total_processing_time_ms: float
     movies_processed: int
+    # NEW: Batch metrics
+    system_metrics: Optional[Dict] = None
 
 class SystemStatus(BaseModel):
     fuzzy_engine_status: str
@@ -519,6 +524,11 @@ async def startup_event():
     global hybrid_system, optimized_system, fuzzy_system, sklearn_ann_model
     try:
         logger.info("🚀 Initializing Movie Recommendation API...")
+        
+        # Initialize metrics collector first
+        from models.metrics import initialize_metrics
+        initialize_metrics()
+        logger.info("✅ Metrics collector initialized")
         
         # Always initialize the real ANN model
         sklearn_ann_model = SklearnANNModel()
@@ -600,6 +610,33 @@ async def get_system_status():
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
         raise HTTPException(status_code=500, detail="Failed to get system status")
+
+
+@app.get("/performance-metrics")
+async def get_performance_metrics():
+    """Get real-time performance metrics for the recommendation system."""
+    try:
+        from models.metrics import get_system_metrics, get_metrics_collector
+        
+        collector = get_metrics_collector()
+        metrics = get_system_metrics()
+        
+        return {
+            "status": "operational",
+            "timestamp": time.time(),
+            "recommendation_metrics": metrics,
+            "recent_requests": collector.get_recent_metrics(count=10),
+            "strategy_distribution": collector.get_strategy_stats()
+        }
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "recommendation_metrics": {},
+            "recent_requests": [],
+            "strategy_distribution": {}
+        }
 
 
 def get_safe_year_range(db_stats):
@@ -709,7 +746,13 @@ async def get_recommendation(request: RecommendationRequest):
     if (not hybrid_system and not fuzzy_system) or not optimized_system:
         raise HTTPException(status_code=503, detail="System not initialized")
     
+    # Import metrics
+    from models.metrics import get_metrics_collector, record_recommendation_metrics, format_metrics_display
+    
     try:
+        # Track timing
+        request_start = time.time()
+        
         # Convert Pydantic models to dictionaries
         user_prefs = request.user_preferences.dict()
         movie_info = request.movie.dict()
@@ -722,6 +765,13 @@ async def get_recommendation(request: RecommendationRequest):
             watch_history,
             request.strategy
         )
+        
+        # Calculate total processing time
+        total_time = (time.time() - request_start) * 1000  # Convert to milliseconds
+        
+        # Get timing breakdown
+        fuzzy_time = result.get('fuzzy_time_ms', 0)
+        ann_time = result.get('ann_time_ms', 0)
         
         # Determine recommendation level
         score = result['hybrid_score']
@@ -736,15 +786,42 @@ async def get_recommendation(request: RecommendationRequest):
         else:
             level = "Not Recommended"
         
+        # Record metrics
+        record_recommendation_metrics(
+            total_time=total_time,
+            fuzzy_time=fuzzy_time,
+            ann_time=ann_time,
+            fuzzy_score=result['fuzzy_score'],
+            ann_score=result.get('ann_score', 0),
+            hybrid_score=result['hybrid_score'],
+            confidence=result.get('confidence', 0),
+            strategy=request.strategy or "adaptive",
+            ann_available=ANN_AVAILABLE
+        )
+        
+        # Get current system metrics
+        collector = get_metrics_collector()
+        system_metrics = collector.get_performance_summary()
+        
+        # Log metrics display
+        logger.info(format_metrics_display())
+        
         return RecommendationResponse(
             movie_title=result['movie_title'],
             fuzzy_score=result['fuzzy_score'],
-            ann_score=result['ann_score'],
+            ann_score=result.get('ann_score'),
             hybrid_score=result['hybrid_score'],
             strategy=result['strategy'],
-            agreement=result['agreement'],
+            agreement=result.get('agreement'),
             recommendation_level=level,
-            processing_time_ms=result.get('processing_time_ms', 0)
+            processing_time_ms=total_time,
+            metrics={
+                "fuzzy_time_ms": fuzzy_time,
+                "ann_time_ms": ann_time,
+                "combination_time_ms": total_time - fuzzy_time - ann_time,
+                "total_time_ms": total_time
+            },
+            system_metrics=system_metrics
         )
         
     except Exception as e:
