@@ -518,10 +518,27 @@ ANN_MODEL_PATH=models/simple_ann_model.keras
 
 ## 📚 Documentation
 
+### Quick References
 - **[Quick Start Guide](QUICK_START.md)** - Get started in 5 minutes
 - **[System Overview](SYSTEM_READY.md)** - Complete system documentation
 - **[Genre Filtering](GENRE_FILTERING_FIXED.md)** - How genre filtering works
 - **[Setup Guide](FINAL_SETUP.md)** - Detailed setup instructions
+
+### Technical Deep Dives
+- **[🧠 Data Preprocessing Guide](DATA_PREPROCESSING.md)** - Complete MovieLens 10M dataset preprocessing pipeline (875 lines)
+  - Two-layer architecture explanation
+  - Data loading and cleaning procedures
+  - Feature engineering (18 features) with formulas
+  - Popularity calculation algorithms
+  - Training data preparation
+
+- **[🧠 Fuzzy Logic System Guide](FUZZY_MODEL.md)** - Complete fuzzy recommendation engine documentation (1000+ lines)
+  - Fuzzy logic theory and Mamdani inference explanation
+  - All 47 inference rules categorized (Type A/B/C)
+  - Membership function definitions and visualizations
+  - Line-by-line code walkthroughs
+  - Step-by-step example calculations
+  - Hybrid system integration strategies
 
 ---
 
